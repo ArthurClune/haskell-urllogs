@@ -1,0 +1,25 @@
+Name:                urllogs
+Version:             0.0.1
+Synopsis:            Parse ipoque urllogs
+-- Description:         
+License:             GPL-3
+License-file:        LICENSE
+Author:              Arthur Clune
+Maintainer:          arthur@clune.org
+Copyright:           Arthur Clune 2012
+Category:            Testing
+Build-type:          Simple
+-- Extra-source-files:  
+Cabal-version:       >=1.2
+
+
+Executable urllogs
+  Main-is: urllogs.hs
+    Build-depends: base, zlib, attoparsec, bytestring
+  
+  -- Modules not exported by this package.
+  -- Other-modules:       
+  
+  -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
+  -- Build-tools:         
+  ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
