@@ -1,24 +1,23 @@
+--
+-- read in ipoque url logs     
+-- Sample data line
+-- 
+-- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
+-- 
 
 {-# LANGUAGE BangPatterns #-}
--- {-# LANGUAGE OverloadedStrings #-}
+ --{-# LANGUAGE OverloadedStrings #-}
 
-
--- read in ipoque url logs     
+import Control.Applicative
 import qualified Data.Attoparsec as A
 import Data.Attoparsec.Char8 hiding (space, take)
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
-
 import qualified Data.ByteString               as B
 import qualified Data.ByteString.Lazy          as BL
 
 import qualified Codec.Compression.GZip as GZip
 
-
--- Sample data line
--- 
--- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
--- 
 
 (~~)::B.ByteString -> B.ByteString -> B.ByteString
 (~~) = B.append
@@ -54,49 +53,34 @@ plainValue = takeWhile1 (/= ' ')
 {-# INLINE plainValue #-}
 
 quotedValue::Parser B.ByteString
-quotedValue = do
-    quote
-    res <- takeWhile1 (/= '\"')
-    quote
-    return res
+quotedValue = (quote *> takeWhile1 (/= '\"')) <* quote
 {-# INLINE quotedValue #-}
 
 barValue::Parser B.ByteString
-barValue = do
-    bar    
-    res <- takeWhile1 (/= '|')
-    return res
+barValue = bar *> takeWhile1 (/= '|')
 {-# INLINE barValue #-}    
 
 hostPair::Parser (B.ByteString, B.ByteString)
 hostPair = do
-    host <- takeWhile1 (/= ':')
-    colon
+    host <- takeWhile1 (/= ':') <* colon
     port <- takeWhile1 (/= '|')  
     return (host, port)
-----  {-# INLINE hostPair #-}
+{-# INLINE hostPair #-}
 
 line::Parser LogLine
-line = do
-    takeWhile1 (/= '|')
-    barValue
-    (src, sport) <- hostPair
-    bar
-    (dst, dport) <- hostPair    
+line = do    
+    (src, sport) <- takeWhile1 (/= '|') *> (barValue *> hostPair)
+    (dst, dport) <- bar *> hostPair    
     yr  <- barValue
     mth <- barValue
     day <- barValue
     hr  <- barValue
     mn  <- barValue
     sec <- barValue
-    bar
-    vhost <- quotedValue 
-    bar
-    url   <- quotedValue
+    vhost <- bar *> quotedValue 
+    url   <- bar *> quotedValue
     return $ LogLine (yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec) src sport dst dport vhost url
 
 main = do         
     contents <- fmap GZip.decompress (BL.readFile "/home/arthur/Work/data/url.log.1.gz")
     mapM_ (print . maybeResult . A.parse line . toStrict) (SL.lines contents)
-
-
