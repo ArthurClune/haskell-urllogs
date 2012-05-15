@@ -61,25 +61,22 @@ barValue = bar *> takeWhile1 (/= '|')
 {-# INLINE barValue #-}    
 
 hostPair::Parser (B.ByteString, B.ByteString)
-hostPair = do
-    host <- takeWhile1 (/= ':') <* colon
-    port <- takeWhile1 (/= '|')  
-    return (host, port)
+hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|') 
 {-# INLINE hostPair #-}
+
+dateValue::Parser (B.ByteString)
+dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> barValue <*> barValue
+    where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
+{-# INLINE dateValue #-}
 
 line::Parser LogLine
 line = do    
     (src, sport) <- takeWhile1 (/= '|') *> (barValue *> hostPair)
-    (dst, dport) <- bar *> hostPair    
-    yr  <- barValue
-    mth <- barValue
-    day <- barValue
-    hr  <- barValue
-    mn  <- barValue
-    sec <- barValue
+    (dst, dport) <- bar *> hostPair 
+    date <- dateValue   
     vhost <- bar *> quotedValue 
     url   <- bar *> quotedValue
-    return $ LogLine (yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec) src sport dst dport vhost url
+    return $ LogLine date src sport dst dport vhost url
 
 main = do         
     contents <- fmap GZip.decompress (BL.readFile "/home/arthur/Work/data/url.log.1.gz")
