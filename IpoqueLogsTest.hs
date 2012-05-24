@@ -23,7 +23,7 @@ testDate  = TestCase $ assertEqual "Date is 20110604231700" "20110604231700" (ge
 testSrc   = TestCase $ assertEqual "Src is 144.32.34.125"   "144.32.34.125"  (getString s src)
 testDst   = TestCase $ assertEqual "Dst is 144.171.20.6"    "144.171.20.6"   (getString s dst)
 testVhost = TestCase $ assertEqual "vhost is www.nap.edu"   "www.nap.edu"    (getString s vhost)
-testUrl   = TestCase $ assertEqual "url is /images/footer_podicon.png" "/images/footer_podicon.png" (getString s vhost)
+testUrl   = TestCase $ assertEqual "url is /images/footer_podicon.png" "/images/footer_podicon.png" (getString s url)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
                 (maybeResult . parse ipoqueLineParser $ fromString x)

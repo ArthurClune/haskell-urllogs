@@ -77,8 +77,9 @@ dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> b
 {-# INLINE dateValue #-}
 
 ipoqueLineParser::Parser IpoqueLogLine
-ipoqueLineParser = do    
-    (src, sport) <- takeWhile1 (/= '|') *> (barValue *> hostPair)
+ipoqueLineParser = do
+    skipWhile (/= '|')
+    (src, sport) <- (barValue *> bar *> hostPair)
     (dst, dport) <- bar *> hostPair 
     date <- dateValue   
     vhost <- bar *> quotedValue 
