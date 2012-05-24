@@ -12,6 +12,7 @@ module IpoqueLogs
       IpoqueLogLine,
       date,
       src,
+      dst,
       sport,
       dport,
       vhost, 
@@ -27,10 +28,7 @@ import Data.Attoparsec.Char8 hiding (space, take)
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
 
-
-(~~)::S.ByteString -> S.ByteString -> S.ByteString
-(~~) = S.append
-{-# INLINE (~~) #-}
+import AJCUtils
 
 toStrict::SL.ByteString->S.ByteString
 toStrict = S.concat . SL.toChunks
