@@ -23,3 +23,6 @@ Executable urllogs
   -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
   -- Build-tools:         
   ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
+
+library
+    Exposed-Modules: IpoqueLogs

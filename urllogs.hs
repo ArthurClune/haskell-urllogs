@@ -1,83 +1,17 @@
---
--- read in ipoque url logs     
--- Sample data line
--- 
--- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
--- 
-
-{-# LANGUAGE BangPatterns #-}
- --{-# LANGUAGE OverloadedStrings #-}
-
-import Control.Applicative
-import qualified Data.Attoparsec as A
-import Data.Attoparsec.Char8 hiding (space, take)
-import qualified Data.ByteString.Char8 as S
-import qualified Data.ByteString.Lazy.Char8 as SL
-import qualified Data.ByteString               as B
-import qualified Data.ByteString.Lazy          as BL
+{-# LANGUAGE OverloadedStrings #-}
 
 import qualified Codec.Compression.GZip as GZip
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as SL
+import qualified Data.Attoparsec as A
 
+import IpoqueLogs
 
-(~~)::B.ByteString -> B.ByteString -> B.ByteString
-(~~) = B.append
-{-# INLINE (~~) #-}
+-- news.bbcimg.co.uk", url = "/view/2_0_11/cream/hi/shared/components/components.css
 
-toStrict::BL.ByteString->B.ByteString
-toStrict = B.concat . BL.toChunks
-{-# INLINE toStrict #-}
-
-data LogLine = LogLine {
-    date  :: !B.ByteString,
-    src   :: !B.ByteString,
-    sport :: !B.ByteString,
-    dst   :: !B.ByteString,
-    dport :: !B.ByteString,
-    vhost :: !B.ByteString,
-    url   :: !B.ByteString        
-} deriving (Ord, Show, Eq)
-    
-
-quote, bar, space, colon :: Parser Char
-quote  = satisfy (== '\"')
-bar    = satisfy (== '|')
-space  = satisfy (== ' ')
-colon  = satisfy (== ':')
-{-# INLINE quote #-}
-{-# INLINE bar #-} 
-{-# INLINE space #-}
-{-# INLINE colon #-}
-
-plainValue::Parser B.ByteString
-plainValue = takeWhile1 (/= ' ')
-{-# INLINE plainValue #-}
-
-quotedValue::Parser B.ByteString
-quotedValue = (quote *> takeWhile1 (/= '\"')) <* quote
-{-# INLINE quotedValue #-}
-
-barValue::Parser B.ByteString
-barValue = bar *> takeWhile1 (/= '|')
-{-# INLINE barValue #-}    
-
-hostPair::Parser (B.ByteString, B.ByteString)
-hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|') 
-{-# INLINE hostPair #-}
-
-dateValue::Parser (B.ByteString)
-dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> barValue <*> barValue
-    where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
-{-# INLINE dateValue #-}
-
-line::Parser LogLine
-line = do    
-    (src, sport) <- takeWhile1 (/= '|') *> (barValue *> hostPair)
-    (dst, dport) <- bar *> hostPair 
-    date <- dateValue   
-    vhost <- bar *> quotedValue 
-    url   <- bar *> quotedValue
-    return $ LogLine date src sport dst dport vhost url
+--matchURL::IpoqueLogLine String -> Bool
+matchURL l s = (sport $ l) == "80"
 
 main = do         
     contents <- fmap GZip.decompress (BL.readFile "/home/arthur/Work/data/url.log.1.gz")
-    mapM_ (print . maybeResult . A.parse line . toStrict) (SL.lines contents)
+    mapM_ (print . A.maybeResult . A.parse ipoqueLineParser . toStrict) (SL.lines contents)
