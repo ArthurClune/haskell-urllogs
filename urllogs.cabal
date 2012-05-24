@@ -24,12 +24,17 @@ Executable urllogs
   -- Build-tools:         
   ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
 
-Executable runtests
-  Main-is: IpoqueLogsTest.hs
+Executable run-ipoque-tests
+  Main-is: IpoqueLogTests.hs
+  Build-depends: base, zlib, attoparsec, bytestring, HUnit
+  ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
+
+Executable run-squid-tests
+  Main-is: AccessLogTests.hs
   Build-depends: base, zlib, attoparsec, bytestring, HUnit
   ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
 
 
 library
-    Exposed-Modules: IpoqueLogs, AJCUtils
-    Build-depends: base, bytestring
+    Exposed-Modules: IpoqueLog, AccessLog, AJCUtils
+    Build-depends: base, bytestring, attoparsec
