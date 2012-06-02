@@ -1,0 +1,14 @@
+
+Write squid log parser
+
+Rewrite both to use conduits
+http://hackage.haskell.org/package/zlib-conduit-0.2.0.1
+
+Add test framework to cabal
+
+http://stackoverflow.com/questions/3120796/haskell-testing-workflow
+
+Write quickcheck tests for both
+
+
+
