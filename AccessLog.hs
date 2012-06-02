@@ -2,45 +2,57 @@
 -- 1330757555.727  43378 144.32.71.165 TCP_MISS/200 418 GET http://0-if-w.channel.facebook.com/pull?channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041 - DIRECT/69.171.227.51 text/plain
 
 {-# LANGUAGE BangPatterns #-}
- --{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module AccessLog
     (
       AccessLogLine,
       accessLineParser,
       ts,
-      bytes,
+      elapsed,
       clientIP,
+      action,
+      size,
+      method,
       url,
-      connType,
-      serverIP,
+      ident,
+      hierarchy,
       mimeType
     ) where
 
 
+import Prelude hiding (takeWhile)
 import Control.Applicative
-import qualified Data.Attoparsec.Lazy as A
-import Data.Attoparsec.Char8 hiding (space, take)
-import qualified Data.ByteString.Char8 as S
-import qualified Data.ByteString.Lazy.Char8 as SL
-
-import AJCUtils
+import qualified Data.Text as T
+import Data.Attoparsec.Text
 
 data AccessLogLine = AccessLogLine {
-    ts          :: !S.ByteString,
-    bytes       :: !S.ByteString,
-    clientIP    :: !S.ByteString,
-    cacheStatus :: !S.ByteString,
-    url         :: !S.ByteString,
-    connType    :: !S.ByteString,  -- DIRECT etc
-    serverIP    :: !S.ByteString,
-    mimeType    :: !S.ByteString
+    ts        :: !Number,
+    elapsed   :: !Number,
+    clientIP  :: !T.Text,
+    action    :: !T.Text,
+    size      :: Number,
+    method    :: !T.Text,
+    url       :: !T.Text,
+    ident     :: !T.Text,  
+    hierarchy :: !T.Text,
+    mimeType  :: !T.Text
 } deriving (Show, Ord, Eq)
 
-space  = satisfy (== ' ')
-
+value :: Parser T.Text
+value = takeWhile1 (/= ' ')
+{-# INLINE value #-}
 
 accessLineParser::Parser AccessLogLine
 accessLineParser = do
-    return $ AccessLogLine (S.pack "1") (S.pack "2") (S.pack "3") (S.pack "4") (S.pack "5") (S.pack "6")
-                           (S.pack "7") (S.pack "8")
+    lts        <- number
+    lelapsed   <- skipWhile (== ' ') *> number
+    lclientIP  <- space *> value
+    laction    <- space *> value
+    lsize      <- space *> number
+    lmethod    <- space *> value
+    lurl       <- space *> value
+    lident     <- space *> value
+    lhierarchy <- space *> value
+    lmimeType  <- space *> takeTill (isEndOfLine)
+    return $ AccessLogLine lts lelapsed lclientIP laction lsize lmethod lurl lident lhierarchy lmimeType

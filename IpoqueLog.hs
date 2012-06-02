@@ -23,7 +23,6 @@ module IpoqueLog
 
 
 import Control.Applicative
-import qualified Data.Attoparsec.Lazy as A
 import Data.Attoparsec.Char8 hiding (space, take)
 import qualified Data.ByteString.Char8 as S
 
@@ -39,19 +38,13 @@ data IpoqueLogLine = IpoqueLogLine {
     url   :: !S.ByteString        
 } deriving (Ord, Show, Eq)
     
-quote, bar, space, colon :: Parser Char
+quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
 bar    = satisfy (== '|')
-space  = satisfy (== ' ')
 colon  = satisfy (== ':')
 {-# INLINE quote #-}
 {-# INLINE bar #-} 
-{-# INLINE space #-}
 {-# INLINE colon #-}
-
-plainValue::Parser S.ByteString
-plainValue = takeWhile1 (/= ' ')
-{-# INLINE plainValue #-}
 
 quotedValue::Parser S.ByteString
 quotedValue = (quote *> takeWhile1 (/= '\"')) <* quote
@@ -73,9 +66,9 @@ dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> b
 ipoqueLineParser::Parser IpoqueLogLine
 ipoqueLineParser = do
     skipWhile (/= '|')
-    (src, sport) <- (barValue *> bar *> hostPair)
-    (dst, dport) <- bar *> hostPair 
-    date <- dateValue   
-    vhost <- bar *> quotedValue 
-    url   <- bar *> quotedValue
-    return $ IpoqueLogLine date src sport dst dport vhost url
+    (lsrc, lsport) <- (barValue *> bar *> hostPair)
+    (ldst, ldport) <- bar *> hostPair 
+    ldate          <- dateValue   
+    lvhost         <- bar *> quotedValue 
+    lurl           <- bar *> quotedValue
+    return $ IpoqueLogLine ldate lsrc lsport ldst ldport lvhost lurl

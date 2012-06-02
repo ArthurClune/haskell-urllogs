@@ -17,13 +17,18 @@ getInt s p = fst. fromJust . readInt $ p i
 
 getString s p = p $ (fromJust . maybeResult . parse ipoqueLineParser $ fromString s)
 
-testDPort = TestCase $ assertEqual "Test dport is 80"       80               (getInt s dport)
-testSport = TestCase $ assertEqual "Test sport is 60326"    60326            (getInt s sport)
-testDate  = TestCase $ assertEqual "Date is 20110604231700" "20110604231700" (getString s date)
-testSrc   = TestCase $ assertEqual "Src is 144.32.34.125"   "144.32.34.125"  (getString s src)
-testDst   = TestCase $ assertEqual "Dst is 144.171.20.6"    "144.171.20.6"   (getString s dst)
-testVhost = TestCase $ assertEqual "vhost is www.nap.edu"   "www.nap.edu"    (getString s vhost)
-testUrl   = TestCase $ assertEqual "url is /images/footer_podicon.png" "/images/footer_podicon.png" (getString s url)
+myTestCase t a f v = TestCase $ assertEqual t a (f s v)
+
+sTestCase t a v = myTestCase t a getString v
+iTestCase t a v = myTestCase t a getInt v
+
+testDPort = iTestCase "Test dport is 80"       80               dport
+testSport = iTestCase "Test sport is 60326"    60326            sport
+testDate  = sTestCase "Date is 20110604231700" "20110604231700" date
+testSrc   = sTestCase "Src is 144.32.34.125"   "144.32.34.125"  src
+testDst   = sTestCase "Dst is 144.171.20.6"    "144.171.20.6"   dst
+testVhost = sTestCase "vhost is www.nap.edu"   "www.nap.edu"    vhost
+testUrl   = sTestCase "url is /images/footer_podicon.png" "/images/footer_podicon.png" url
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
                 (maybeResult . parse ipoqueLineParser $ fromString x)

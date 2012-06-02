@@ -14,7 +14,6 @@ import qualified Data.ByteString.Lazy.Char8 as SL
 (~~) = S.append
 {-# INLINE (~~) #-}
 
-
 toStrict::SL.ByteString->S.ByteString
 toStrict = S.concat . SL.toChunks
 {-# INLINE toStrict #-}
