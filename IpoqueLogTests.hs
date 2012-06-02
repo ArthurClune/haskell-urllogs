@@ -17,8 +17,8 @@ getInt s p = fst. fromJust . readInt $ p i
 
 getString s p = p $ (fromJust . maybeResult . parse ipoqueLineParser $ fromString s)
 
-testDPort = TestCase $ assertEqual "Test dport is 80" 80 (getInt s dport)
-testSport = TestCase $ assertEqual "Test sport is 60326" 60326 (getInt s sport)
+testDPort = TestCase $ assertEqual "Test dport is 80"       80               (getInt s dport)
+testSport = TestCase $ assertEqual "Test sport is 60326"    60326            (getInt s sport)
 testDate  = TestCase $ assertEqual "Date is 20110604231700" "20110604231700" (getString s date)
 testSrc   = TestCase $ assertEqual "Src is 144.32.34.125"   "144.32.34.125"  (getString s src)
 testDst   = TestCase $ assertEqual "Dst is 144.171.20.6"    "144.171.20.6"   (getString s dst)

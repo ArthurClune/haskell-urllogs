@@ -8,33 +8,33 @@ Author:              Arthur Clune
 Maintainer:          arthur@clune.org
 Copyright:           Arthur Clune 2012
 Category:            Testing
-Build-type:          Simple
+Build-type:          Custom
 -- Extra-source-files:  
 Cabal-version:       >=1.2
 
+flag optimize
+  description: Enable optimizations
+  default:     True
 
 Executable urllogs
   Main-is: urllogs.hs
   Build-depends: base, zlib, attoparsec, bytestring
-  
-  -- Modules not exported by this package.
-  -- Other-modules:       
-  
-  -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
-  -- Build-tools:         
-  ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
+  ghc-options: -Wall
+  if flag(optimize)
+    ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr
 
 Executable run-ipoque-tests
   Main-is: IpoqueLogTests.hs
   Build-depends: base, zlib, attoparsec, bytestring, HUnit
-  ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
 
 Executable run-squid-tests
   Main-is: AccessLogTests.hs
   Build-depends: base, zlib, attoparsec, bytestring, HUnit
-  ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields
-
 
 library
-    Exposed-Modules: IpoqueLog, AccessLog, AJCUtils
-    Build-depends: base, bytestring, attoparsec
+    Exposed-Modules: IpoqueLog, AccessLog
+    Other-modules:   AJCUtils
+    Build-depends:   base, bytestring, attoparsec
+    ghc-options: -Wall
+    if flag(optimize)
+      ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr
