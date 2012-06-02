@@ -31,7 +31,7 @@ data AccessLogLine = AccessLogLine {
     elapsed   :: !Number,
     clientIP  :: !T.Text,
     action    :: !T.Text,
-    size      :: Number,
+    size      :: !Number,
     method    :: !T.Text,
     url       :: !T.Text,
     ident     :: !T.Text,  
