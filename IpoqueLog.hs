@@ -5,7 +5,7 @@
 -- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
 -- 
 {-# LANGUAGE BangPatterns #-}
- --{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module IpoqueLog
     (
@@ -23,19 +23,19 @@ module IpoqueLog
 
 
 import Control.Applicative
-import Data.Attoparsec.Char8 hiding (space, take)
-import qualified Data.ByteString.Char8 as S
+import Data.Text as T
+import Data.Attoparsec.Text
 
 import AJCUtils
 
 data IpoqueLogLine = IpoqueLogLine {
-    date  :: !S.ByteString,
-    src   :: !S.ByteString,
-    sport :: !S.ByteString,
-    dst   :: !S.ByteString,
-    dport :: !S.ByteString,
-    vhost :: !S.ByteString,
-    url   :: !S.ByteString        
+    date  :: !T.Text,
+    src   :: !T.Text,
+    sport :: !Number,
+    dst   :: !T.Text,
+    dport :: !Number,
+    vhost :: !T.Text,
+    url   :: !T.Text
 } deriving (Ord, Show, Eq)
     
 quote, bar, colon :: Parser Char
@@ -46,19 +46,22 @@ colon  = satisfy (== ':')
 {-# INLINE bar #-} 
 {-# INLINE colon #-}
 
-quotedValue::Parser S.ByteString
+(~~)::T.Text -> T.Text -> T.Text
+(~~) a b = T.append a b
+
+quotedValue::Parser T.Text
 quotedValue = (quote *> takeWhile1 (/= '\"')) <* quote
 {-# INLINE quotedValue #-}
 
-barValue::Parser S.ByteString
+barValue::Parser T.Text
 barValue = bar *> takeWhile1 (/= '|')
 {-# INLINE barValue #-}    
 
-hostPair::Parser (S.ByteString, S.ByteString)
-hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|') 
+hostPair::Parser (T.Text, Number)
+hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> number
 {-# INLINE hostPair #-}
 
-dateValue::Parser (S.ByteString)
+dateValue::Parser (T.Text)
 dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> barValue <*> barValue
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
@@ -72,3 +75,5 @@ ipoqueLineParser = do
     lvhost         <- bar *> quotedValue 
     lurl           <- bar *> quotedValue
     return $ IpoqueLogLine ldate lsrc lsport ldst ldport lvhost lurl
+    --return $ IpoqueLogLine "1" lsrc lsport ldst ldport "6" "7"
+
