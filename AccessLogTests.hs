@@ -9,7 +9,7 @@ import Data.Attoparsec.Text
 
 s = "1330757555.727  43378 144.32.71.165 TCP_MISS/200 418 GET http://0-if-w.channel.facebook.com/pull?channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041 - DIRECT/69.171.227.51 text/plain\n"
 urls = "http://0-if-w.channel.facebook.com/pull?channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041"    
-x = "a line tha   should not parse\n" 
+x = "a line tha   should not parse\n"
 
 myTestCase t a v = doTestCase t a getValue v
     where

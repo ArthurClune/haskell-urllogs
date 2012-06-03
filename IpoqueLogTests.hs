@@ -7,9 +7,10 @@ import Test.HUnit
 import Data.Attoparsec.Text
 
 
-s = "Jun  4 23:17:00 144.32.142.3 \"CampusEast2 - 144.32.142.3\"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|\"www.nap.edu\"|\"/images/footer_podicon.png\"\n"
-x = "Jun  4 23:17:00 144.32.143.3  \n"
+s = "Jun  4 23:17:00 144.32.142.3 \"CampusEast2 - 144.32.142.3\"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|\"www.nap.edu\"|\"/images/footer_podicon.png\""
+x = "Jun  4 23:17:00 144.32.143.3  "
 
+-- t = text, a = correct answer, v = member of structure
 myTestCase t a v = doTestCase t a getValue v
     where
         getValue s p = p $ (fromJust . maybeResult $ parse ipoqueLineParser s)

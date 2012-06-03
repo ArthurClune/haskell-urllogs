@@ -2,7 +2,6 @@
 -- 1330757555.727  43378 144.32.71.165 TCP_MISS/200 418 GET http://0-if-w.channel.facebook.com/pull?channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041 - DIRECT/69.171.227.51 text/plain
 
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module AccessLog
     (
@@ -21,7 +20,7 @@ module AccessLog
     ) where
 
 
-import Prelude hiding (takeWhile)
+import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.Text as T
 import Data.Attoparsec.Text
@@ -46,7 +45,7 @@ value = takeWhile1 (/= ' ')
 accessLineParser::Parser AccessLogLine
 accessLineParser = do
     lts        <- number
-    lelapsed   <- skipWhile (== ' ') *> number
+    lelapsed   <- skipSpace *> number
     lclientIP  <- space *> value
     laction    <- space *> value
     lsize      <- space *> number
