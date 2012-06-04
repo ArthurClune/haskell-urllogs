@@ -16,16 +16,14 @@ module IpoqueLog
       dport,
       vhost, 
       url,
-      ipoqueLineParser,
-      toStrict
+      ipoqueLogParser,
+      ipoqueLogLine
     ) where
 
 
 import Control.Applicative
 import Data.Text as T
 import Data.Attoparsec.Text
-
-import AJCUtils
 
 data IpoqueLogLine = IpoqueLogLine {
     date  :: !T.Text,
@@ -65,14 +63,18 @@ dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> b
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
 
-ipoqueLineParser::Parser IpoqueLogLine
-ipoqueLineParser = do
+ipoqueLogLine::Parser IpoqueLogLine
+ipoqueLogLine = do
     skipWhile (/= '|')
     (lsrc, lsport) <- (barValue *> bar *> hostPair)
     (ldst, ldport) <- bar *> hostPair 
     ldate          <- dateValue   
     lvhost         <- bar *> quotedValue 
     lurl           <- bar *> quotedValue
+    endOfLine
     return $ IpoqueLogLine ldate lsrc lsport ldst ldport lvhost lurl
-    --return $ IpoqueLogLine "1" lsrc lsport ldst ldport "6" "7"
 
+ipoqueLogParser::Parser [IpoqueLogLine]
+ipoqueLogParser = do
+    result <- many ipoqueLogLine
+    return result
