@@ -9,6 +9,7 @@
 module IpoqueLog
     (
       IpoqueLogLine,
+      ipoqueLogLine,
       date,
       src,
       dst,
@@ -16,25 +17,24 @@ module IpoqueLog
       dport,
       vhost, 
       url,
-      ipoqueLogParser,
-      ipoqueLogLine
     ) where
 
-
+import Prelude hiding (takeWhile, take)
 import Control.Applicative
-import Data.Text as T
-import Data.Attoparsec.Text
+import qualified Data.ByteString.Char8 as S
+import Data.Attoparsec.Char8
+import AJCUtils ((~~))
 
 data IpoqueLogLine = IpoqueLogLine {
-    date  :: !T.Text,
-    src   :: !T.Text,
-    sport :: !Number,
-    dst   :: !T.Text,
-    dport :: !Number,
-    vhost :: !T.Text,
-    url   :: !T.Text
+    date  :: !S.ByteString,
+    src   :: !S.ByteString,
+    sport :: !S.ByteString,
+    dst   :: !S.ByteString,
+    dport :: !S.ByteString,
+    vhost :: !S.ByteString,
+    url   :: !S.ByteString
 } deriving (Ord, Show, Eq)
-    
+  
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
 bar    = satisfy (== '|')
@@ -43,22 +43,19 @@ colon  = satisfy (== ':')
 {-# INLINE bar #-} 
 {-# INLINE colon #-}
 
-(~~)::T.Text -> T.Text -> T.Text
-(~~) a b = T.append a b
-
-quotedValue::Parser T.Text
+quotedValue::Parser S.ByteString
 quotedValue = (quote *> takeWhile1 (/= '\"')) <* quote
 {-# INLINE quotedValue #-}
 
-barValue::Parser T.Text
+barValue::Parser S.ByteString
 barValue = bar *> takeWhile1 (/= '|')
 {-# INLINE barValue #-}    
 
-hostPair::Parser (T.Text, Number)
-hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> number
+hostPair::Parser (S.ByteString, S.ByteString)
+hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|') 
 {-# INLINE hostPair #-}
 
-dateValue::Parser (T.Text)
+dateValue::Parser (S.ByteString)
 dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> barValue <*> barValue
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
@@ -68,13 +65,7 @@ ipoqueLogLine = do
     skipWhile (/= '|')
     (lsrc, lsport) <- (barValue *> bar *> hostPair)
     (ldst, ldport) <- bar *> hostPair 
-    ldate          <- dateValue   
-    lvhost         <- bar *> quotedValue 
-    lurl           <- bar *> quotedValue
-    endOfLine
+    ldate <- dateValue   
+    lvhost <- bar *> quotedValue 
+    lurl   <- bar *> quotedValue
     return $ IpoqueLogLine ldate lsrc lsport ldst ldport lvhost lurl
-
-ipoqueLogParser::Parser [IpoqueLogLine]
-ipoqueLogParser = do
-    result <- many ipoqueLogLine
-    return result
