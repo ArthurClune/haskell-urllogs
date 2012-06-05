@@ -7,7 +7,8 @@
 module AccessLog
     (
       AccessLogLine,
-      accessLineParser,
+      accessLogParser,
+      accessLogLine,
       ts,
       elapsed,
       clientIP,
@@ -21,7 +22,8 @@ module AccessLog
     ) where
 
 
-import Prelude hiding (takeWhile)
+
+import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.Text as T
 import Data.Attoparsec.Text
@@ -43,10 +45,10 @@ value :: Parser T.Text
 value = takeWhile1 (/= ' ')
 {-# INLINE value #-}
 
-accessLineParser::Parser AccessLogLine
-accessLineParser = do
+accessLogLine::Parser AccessLogLine
+accessLogLine = do
     lts        <- number
-    lelapsed   <- skipWhile (== ' ') *> number
+    lelapsed   <- skipSpace *> number
     lclientIP  <- space *> value
     laction    <- space *> value
     lsize      <- space *> number
@@ -54,5 +56,12 @@ accessLineParser = do
     lurl       <- space *> value
     lident     <- space *> value
     lhierarchy <- space *> value
-    lmimeType  <- space *> takeTill (isEndOfLine)
+    --lmimeType  <- space *> takeTill isEndOfLine <* endOfLine
+    lmimeType  <- space *> takeWhile1 (not . isEndOfLine)
+    endOfLine <|> endOfInput
     return $ AccessLogLine lts lelapsed lclientIP laction lsize lmethod lurl lident lhierarchy lmimeType
+
+accessLogParser::Parser [AccessLogLine]
+accessLogParser = do
+    result <- many accessLogLine
+    return result
