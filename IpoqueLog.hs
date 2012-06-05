@@ -8,22 +8,20 @@
 
 module IpoqueLog
     (
-      IpoqueLogLine,
+      IpoqueLogLine (..),
       ipoqueLogLine,
-      date,
-      src,
-      dst,
-      sport,
-      dport,
-      vhost, 
-      url,
+      getGzipLog,
+      getLog
     ) where
 
 import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.ByteString.Char8 as S
+import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
-import AJCUtils ((~~))
+import qualified Codec.Compression.GZip as GZip
+
+import AJCUtils
 
 data IpoqueLogLine = IpoqueLogLine {
     date  :: !S.ByteString,
@@ -69,3 +67,18 @@ ipoqueLogLine = do
     lvhost <- bar *> quotedValue 
     lurl   <- bar *> quotedValue
     return $ IpoqueLogLine ldate lsrc lsport ldst ldport lvhost lurl
+
+parseFile::SL.ByteString -> [Maybe IpoqueLogLine]
+parseFile c = map (maybeResult . parse ipoqueLogLine . toStrict) (SL.lines c)
+
+getGzipLog::FilePath -> IO [Maybe IpoqueLogLine]
+getGzipLog f = do
+    contents <- fmap GZip.decompress (SL.readFile f)
+    let s = parseFile contents
+    return s
+
+getLog::FilePath -> IO [Maybe IpoqueLogLine]
+getLog f = do
+    contents <- SL.readFile f
+    let s = parseFile contents
+    return s      

@@ -5,25 +5,20 @@
 
 module AccessLog
     (
-      AccessLogLine,
+      AccessLogLine (..),
       accessLogLine,
-      ts,
-      elapsed,
-      clientIP,
-      action,
-      size,
-      method,
-      url,
-      ident,
-      hierarchy,
-      mimeType
+      getGzipLog,
+      getLog
     ) where
 
 
 import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.ByteString.Char8 as S
+import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
+import qualified Codec.Compression.GZip as GZip
+import AJCUtils
 
 data AccessLogLine = AccessLogLine {
     ts        :: !S.ByteString,
@@ -42,10 +37,14 @@ plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
 {-# INLINE plainValue #-}
 
+endValue::Parser S.ByteString
+endValue = takeWhile1 (inClass "a-z/")
+{-# INLINE endValue #-}
+
 accessLogLine::Parser AccessLogLine
 accessLogLine = do
     lts        <- plainValue
-    lelapsed   <- skipWhile (== ' ') *> plainValue
+    lelapsed   <- skipSpace *> plainValue
     lclientIP  <- space *> plainValue
     laction    <- space *> plainValue
     lsize      <- space *> plainValue
@@ -53,5 +52,21 @@ accessLogLine = do
     lurl       <- space *> plainValue
     lident     <- space *> plainValue
     lhierarchy <- space *> plainValue
-    lmimeType  <- space *> takeByteString <* endOfInput
+    lmimeType  <- space *> endValue
     return $ AccessLogLine lts lelapsed lclientIP laction lsize lmethod lurl lident lhierarchy lmimeType
+
+parseFile::SL.ByteString -> [Maybe AccessLogLine]
+parseFile c = map (maybeResult . parse accessLogLine . toStrict) (SL.lines c)
+
+getGzipLog::FilePath -> IO [Maybe AccessLogLine]
+getGzipLog f = do
+    contents <- fmap GZip.decompress (SL.readFile f)
+    let s = parseFile contents
+    return s
+
+getLog::FilePath -> IO [Maybe AccessLogLine]
+getLog f = do
+    contents <- SL.readFile f
+    let s = parseFile contents
+    return s
+
