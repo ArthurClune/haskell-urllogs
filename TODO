@@ -1,5 +1,4 @@
 
-Write squid log parser
 
 Rewrite both to use conduits
 http://hackage.haskell.org/package/zlib-conduit-0.2.0.1

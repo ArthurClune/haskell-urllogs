@@ -26,9 +26,9 @@ import AJCUtils
 data IpoqueLogLine = IpoqueLogLine {
     date  :: !S.ByteString,
     src   :: !S.ByteString,
-    sport :: !S.ByteString,
+    sport :: !Int,
     dst   :: !S.ByteString,
-    dport :: !S.ByteString,
+    dport :: !Int,
     vhost :: !S.ByteString,
     url   :: !S.ByteString
 } deriving (Ord, Show, Eq)
@@ -50,7 +50,7 @@ barValue = bar *> takeWhile1 (/= '|')
 {-# INLINE barValue #-}    
 
 hostPair::Parser (S.ByteString, S.ByteString)
-hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|') 
+hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|')
 {-# INLINE hostPair #-}
 
 dateValue::Parser (S.ByteString)
@@ -66,7 +66,9 @@ ipoqueLogLine = do
     ldate <- dateValue   
     lvhost <- bar *> quotedValue 
     lurl   <- bar *> quotedValue
-    return $ IpoqueLogLine ldate lsrc lsport ldst ldport lvhost lurl
+    return $ IpoqueLogLine ldate lsrc (toInt lsport)
+                                 ldst (toInt ldport)
+                                 lvhost lurl
 
 parseFile::SL.ByteString -> [Maybe IpoqueLogLine]
 parseFile c = map (maybeResult . parse ipoqueLogLine . toStrict) (SL.lines c)

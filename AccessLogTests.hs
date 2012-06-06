@@ -18,23 +18,19 @@ x = "a line tha   should not parse\n"
 
 doParse s = parseOnly accessLogLine s
 
-getInt s p = fst. fromJust . readInt $ r'
-        where 
-            r' = either (\x -> "fail") (\x -> p x) $ doParse s
-
-getString s p = either (\x -> "fail") (\x -> p x) $ doParse s
+getVal p s = either (\x -> error "fail") (\x -> p x) $ doParse s
 
 
-testTS         = TestCase $ assertEqual "TS"           "1330757555.727" (getString s ts)
-testElapsed    = TestCase $ assertEqual "Elapsed time" 43378           (getInt s elapsed)
-testClientIP   = TestCase $ assertEqual "Client IP"    "144.32.71.165" (getString s clientIP)
-testAction     = TestCase $ assertEqual "Action"       "TCP_MISS/200"  (getString s action)
-testSize       = TestCase $ assertEqual "Size"         418             (getInt s size)
-testMethod     = TestCase $ assertEqual "Method"       "GET"           (getString s method)
-testURL        = TestCase $ assertEqual "URL"          urls            (getString s url)
-testIdent      = TestCase $ assertEqual "Ident"        "-"             (getString s ident)
-testMimeType   = TestCase $ assertEqual "Mime type"    "text/plain"    (getString s mimeType)
-testHierarchy  = TestCase $ assertEqual "Hierarchy"    "DIRECT/69.171.227.51" (getString s hierarchy)
+testTS         = TestCase $ assertEqual "TS"           1330757555      (getVal ts s)
+testElapsed    = TestCase $ assertEqual "Elapsed time" 43378           (getVal elapsed s)
+testClientIP   = TestCase $ assertEqual "Client IP"    "144.32.71.165" (getVal clientIP s)
+testAction     = TestCase $ assertEqual "Action"       "TCP_MISS/200"  (getVal action s)
+testSize       = TestCase $ assertEqual "Size"         418             (getVal size s)
+testMethod     = TestCase $ assertEqual "Method"       GET             (getVal method s)
+testURL        = TestCase $ assertEqual "URL"          urls            (getVal url s)
+testIdent      = TestCase $ assertEqual "Ident"        "-"             (getVal ident s)
+testMimeType   = TestCase $ assertEqual "Mime type"    "text/plain"    (getVal mimeType s)
+testHierarchy  = TestCase $ assertEqual "Hierarchy"    "DIRECT/69.171.227.51" (getVal hierarchy s)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
                 (maybeResult . parse accessLogLine $ x)
