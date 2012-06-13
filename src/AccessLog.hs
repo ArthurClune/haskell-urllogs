@@ -5,8 +5,6 @@
 
 module AccessLog
     (
-      AccessLogLine (..),
-      Method (..),
       accessLogLine,
       getGzipLog,
       getLog
@@ -19,65 +17,36 @@ import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
 import qualified Codec.Compression.GZip as GZip
-import AJCUtils (toInt, toStrict)
-
-data Method = GET | HEAD| POST | PUT |
-              CONNECT | ICP_QUERY | MNONE      
-              deriving (Show, Eq)
-
-data AccessLogLine = AccessLogLine {
-    ts        :: !Int,           -- we round time to nearest second
-    elapsed   :: !Int,
-    clientIP  :: !S.ByteString,
-    action    :: !S.ByteString,
-    size      :: !Int,
-    method    :: Method,
-    url       :: !S.ByteString,
-    ident     :: !S.ByteString,
-    hierarchy :: !S.ByteString,
-    mimeType  :: !S.ByteString
-} deriving (Show, Eq)
+import AJCUtils (toStrict)
+import Types
 
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
 {-# INLINE plainValue #-}
 
 endValue::Parser S.ByteString
-endValue = takeWhile1 (inClass "a-z/")
+endValue = takeWhile1 (inClass "a-z/ ")
 {-# INLINE endValue #-}
 
-accessLogLine::Parser AccessLogLine
-accessLogLine = do
-    lts        <- plainValue
-    lelapsed   <- skipSpace *> plainValue
-    lclientIP  <- space *> plainValue
-    laction    <- space *> plainValue
-    lsize      <- space *> plainValue
-    lmethod    <- space *> (string "GET"       *> pure GET  <|>
-                            string "POST"      *> pure POST <|>
-                            string "PUT"       *> pure PUT  <|>
-                            string "HEAD"      *> pure HEAD <|>
-                            string "CONNECT"   *> pure CONNECT   <|>
-                            string "ICP_QUERY" *> pure ICP_QUERY <|>
-                            string "NONE"      *> pure MNONE
-                            )
-    lurl       <- space *> plainValue
-    lident     <- space *> plainValue
-    lhierarchy <- space *> plainValue
-    lmimeType  <- space *> endValue
-    return $ AccessLogLine (toInt lts) (toInt lelapsed) lclientIP laction 
-                           (toInt lsize) lmethod lurl lident lhierarchy lmimeType
+preludeString::Parser Char
+preludeString = plainValue *> skipSpace *> plainValue *> space
 
-parseFile::SL.ByteString -> [Maybe AccessLogLine]
+accessLogLine::Parser URLAccess
+accessLogLine = do
+    lclientIP  <- preludeString *> plainValue
+    lurl       <- space *> plainValue *> space *> plainValue *> space *> plainValue *> space *> plainValue <* endValue
+    return $ URLAccess lclientIP lurl
+
+parseFile::SL.ByteString -> [Maybe URLAccess]
 parseFile c = map (maybeResult . parse accessLogLine . toStrict) (SL.lines c)
 
-getGzipLog::FilePath -> IO [Maybe AccessLogLine]
+getGzipLog::FilePath -> IO [Maybe URLAccess]
 getGzipLog f = do
     contents <- fmap GZip.decompress (SL.readFile f)
     let s = parseFile contents
     return s
 
-getLog::FilePath -> IO [Maybe AccessLogLine]
+getLog::FilePath -> IO [Maybe URLAccess]
 getLog f = do
     contents <- SL.readFile f
     let s = parseFile contents

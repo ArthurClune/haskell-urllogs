@@ -35,7 +35,7 @@ Executable run-squid-tests
   Build-depends: base, zlib, attoparsec, bytestring, HUnit, text
 
 library
-    Exposed-Modules: IpoqueLog, AccessLog
+    Exposed-Modules: IpoqueLog, AccessLog, Types
     hs-source-dirs: src
     Other-modules:   AJCUtils
     Build-depends:   base, bytestring, attoparsec

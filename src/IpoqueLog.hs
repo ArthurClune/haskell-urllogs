@@ -8,7 +8,6 @@
 
 module IpoqueLog
     (
-      IpoqueLogLine (..),
       ipoqueLogLine,
       getGzipLog,
       getLog
@@ -22,17 +21,8 @@ import Data.Attoparsec.Char8
 import qualified Codec.Compression.GZip as GZip
 
 import AJCUtils
+import Types
 
-data IpoqueLogLine = IpoqueLogLine {
-    date  :: !S.ByteString,
-    src   :: !S.ByteString,
-    sport :: !Int,
-    dst   :: !S.ByteString,
-    dport :: !Int,
-    vhost :: !S.ByteString,
-    url   :: !S.ByteString
-} deriving (Ord, Show, Eq)
-  
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
 bar    = satisfy (== '|')
@@ -58,7 +48,7 @@ dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> b
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
 
-ipoqueLogLine::Parser IpoqueLogLine
+ipoqueLogLine::Parser URLAccess
 ipoqueLogLine = do
     skipWhile (/= '|')
     (lsrc, lsport) <- (barValue *> bar *> hostPair)
@@ -66,20 +56,18 @@ ipoqueLogLine = do
     ldate <- dateValue   
     lvhost <- bar *> quotedValue 
     lurl   <- bar *> quotedValue
-    return $ IpoqueLogLine ldate lsrc (toInt lsport)
-                                 ldst (toInt ldport)
-                                 lvhost lurl
+    return $ URLAccess lsrc (lvhost ~~ lurl)
 
-parseFile::SL.ByteString -> [Maybe IpoqueLogLine]
+parseFile::SL.ByteString -> [Maybe URLAccess]
 parseFile c = map (maybeResult . parse ipoqueLogLine . toStrict) (SL.lines c)
 
-getGzipLog::FilePath -> IO [Maybe IpoqueLogLine]
+getGzipLog::FilePath -> IO [Maybe URLAccess]
 getGzipLog f = do
     contents <- fmap GZip.decompress (SL.readFile f)
     let s = parseFile contents
     return s
 
-getLog::FilePath -> IO [Maybe IpoqueLogLine]
+getLog::FilePath -> IO [Maybe URLAccess]
 getLog f = do
     contents <- SL.readFile f
     let s = parseFile contents
