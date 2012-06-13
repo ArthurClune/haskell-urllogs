@@ -18,6 +18,7 @@ flag optimize
 
 Executable urllogs
   Main-is: urllogs.hs
+  hs-source-dirs: src
   Build-depends: base, zlib, attoparsec, bytestring, text
   ghc-options: -Wall
   if flag(optimize)
@@ -25,14 +26,17 @@ Executable urllogs
 
 Executable run-ipoque-tests
   Main-is: IpoqueLogTests.hs
+  hs-source-dirs: tests, src
   Build-depends: base, zlib, attoparsec, bytestring, HUnit
 
 Executable run-squid-tests
   Main-is: AccessLogTests.hs
+  hs-source-dirs: tests, src
   Build-depends: base, zlib, attoparsec, bytestring, HUnit, text
 
 library
     Exposed-Modules: IpoqueLog, AccessLog
+    hs-source-dirs: src
     Other-modules:   AJCUtils
     Build-depends:   base, bytestring, attoparsec
     ghc-options: -Wall
