@@ -4,9 +4,9 @@
 -- 
 -- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
 -- 
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, OverloadedStrings #-}
 
-module IpoqueLog
+module URLAlert.IpoqueLog
     (
       ipoqueLogLine,
       getGzipLog,
@@ -20,8 +20,8 @@ import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
 import qualified Codec.Compression.GZip as GZip
 
-import AJCUtils
-import Types
+import URLAlert.Utils
+import URLAlert.Types
 
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
@@ -48,15 +48,28 @@ dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> b
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
 
+--urlValue::Parser (S.ByteString, S.ByteString)
+--urlValue = (,) <$> takeTill (== '?') <*> ((quote *> "") <|> (takeTill (== '\"') <* quote))
+--{-# INLINE urlValue #-}
+
+urlValue::Parser (S.ByteString, S.ByteString)
+urlValue = (,) <$> takeTill (\c -> (c == '?') || (c =='\"')) <*> ( satisfy (== '?') *> takeTill (== '\"')  <|> quote *> pure "" )
+{-# INLINE urlValue #-}
+
+xparams::S.ByteString->Maybe S.ByteString
+xparams s 
+  | s == ""    = Nothing
+  | otherwise  = Just s
+
 ipoqueLogLine::Parser URLAccess
 ipoqueLogLine = do
     skipWhile (/= '|')
-    (lsrc, lsport) <- (barValue *> bar *> hostPair)
-    (ldst, ldport) <- bar *> hostPair 
-    ldate <- dateValue   
-    lvhost <- bar *> quotedValue 
-    lurl   <- bar *> quotedValue
-    return $ URLAccess lsrc (lvhost ~~ lurl)
+    (lsrc, lsport)  <- (barValue *> bar *> hostPair)
+    (ldst, ldport)  <- bar *> hostPair 
+    ldate           <- dateValue   
+    lvhost          <- bar *> quotedValue 
+    (lpath, lparams)<- bar *> quote *> urlValue
+    return $ URLAccess lsrc lvhost lpath (xparams lparams) (toInt ldport) HTTP
 
 parseFile::SL.ByteString -> [Maybe URLAccess]
 parseFile c = map (maybeResult . parse ipoqueLogLine . toStrict) (SL.lines c)

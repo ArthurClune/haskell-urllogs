@@ -1,5 +1,5 @@
-import qualified IpoqueLog
-import qualified AccessLog 
+import qualified URLAlert.IpoqueLog as IpoqueLog
+import qualified URLAlert.AccessLog as AccessLog
 
 main::IO()
 main = do         

@@ -1,6 +1,6 @@
 -- General Utils functions
 
-module AJCUtils 
+module URLAlert.Utils 
 (
 toStrict,
 toInt,

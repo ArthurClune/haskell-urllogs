@@ -35,9 +35,9 @@ Executable run-squid-tests
   Build-depends: base, zlib, attoparsec, bytestring, HUnit, text
 
 library
-    Exposed-Modules: IpoqueLog, AccessLog, Types
+    Exposed-Modules: URLAlert.IpoqueLog, URLAlert.AccessLog, URLAlert.Types
     hs-source-dirs: src
-    Other-modules:   AJCUtils
+    Other-modules:   URLAlert.Utils
     Build-depends:   base, bytestring, attoparsec
     ghc-options: -Wall
     if flag(optimize)
