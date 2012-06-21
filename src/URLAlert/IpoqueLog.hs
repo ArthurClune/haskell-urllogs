@@ -17,7 +17,7 @@ import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
-import Data.Attoparsec.Char8
+import Data.Attoparsec.ByteString.Char8
 import qualified Codec.Compression.GZip as GZip
 
 import URLAlert.Utils
@@ -48,18 +48,9 @@ dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> b
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
 
---urlValue::Parser (S.ByteString, S.ByteString)
---urlValue = (,) <$> takeTill (== '?') <*> ((quote *> "") <|> (takeTill (== '\"') <* quote))
---{-# INLINE urlValue #-}
-
 urlValue::Parser (S.ByteString, S.ByteString)
 urlValue = (,) <$> takeTill (\c -> (c == '?') || (c =='\"')) <*> ( satisfy (== '?') *> takeTill (== '\"')  <|> quote *> pure "" )
 {-# INLINE urlValue #-}
-
-xparams::S.ByteString->Maybe S.ByteString
-xparams s 
-  | s == ""    = Nothing
-  | otherwise  = Just s
 
 ipoqueLogLine::Parser URLAccess
 ipoqueLogLine = do
@@ -69,19 +60,22 @@ ipoqueLogLine = do
     ldate           <- dateValue   
     lvhost          <- bar *> quotedValue 
     (lpath, lparams)<- bar *> quote *> urlValue
-    return $ URLAccess lsrc lvhost lpath (xparams lparams) (toInt ldport) HTTP
+    return $! URLAccess lsrc (URI lvhost lpath lparams (toInt ldport) HTTP)
 
-parseFile::SL.ByteString -> [Maybe URLAccess]
-parseFile c = map (maybeResult . parse ipoqueLogLine . toStrict) (SL.lines c)
+parseString::SL.ByteString -> [Maybe URLAccess]
+parseString c = map (maybeResult . myParse . toStrict) (SL.lines c)
+    where
+      myParse s = feed (parse ipoqueLogLine s) S.empty
+
 
 getGzipLog::FilePath -> IO [Maybe URLAccess]
 getGzipLog f = do
     contents <- fmap GZip.decompress (SL.readFile f)
-    let s = parseFile contents
+    let s = parseString contents
     return s
 
 getLog::FilePath -> IO [Maybe URLAccess]
 getLog f = do
     contents <- SL.readFile f
-    let s = parseFile contents
+    let s = parseString contents
     return s      
