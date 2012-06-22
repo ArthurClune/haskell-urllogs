@@ -1,7 +1,7 @@
 -- parse standard squid logfiles 
 -- see http://www.linofee.org/~jel/proxy/Squid/accesslog.shtml for log format
 
-{-# LANGUAGE BangPatterns, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module URLAlert.AccessLog
     (
@@ -48,7 +48,7 @@ buildURI lvhost lPath lParams lscheme  =
                   HTTP  -> URI v lPath lParams 80 lscheme
                   HTTPS -> URI v lPath lParams 443 lscheme
       [v, p] -> URI v lPath lParams (toInt p) lscheme
-      _      -> error ("parse error")
+      _      -> error "parse error"
     where
       a = S.split ':' lvhost
 

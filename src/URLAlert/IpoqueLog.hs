@@ -4,7 +4,7 @@
 -- 
 -- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
 -- 
-{-# LANGUAGE BangPatterns, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module URLAlert.IpoqueLog
     (
@@ -40,10 +40,10 @@ barValue = bar *> takeWhile1 (/= '|')
 {-# INLINE barValue #-}    
 
 hostPair::Parser (S.ByteString, S.ByteString)
-hostPair = (,) <$> ((takeWhile1 (/= ':')) <* colon) <*> takeWhile1 (/= '|')
+hostPair = (,) <$> (takeWhile1 (/= ':') <* colon) <*> takeWhile1 (/= '|')
 {-# INLINE hostPair #-}
 
-dateValue::Parser (S.ByteString)
+dateValue::Parser S.ByteString
 dateValue = concatDate <$> barValue <*> barValue <*> barValue <*> barValue <*> barValue <*> barValue
     where concatDate yr mth day hr mn sec = yr ~~ mth ~~ day ~~ hr ~~ mn ~~ sec
 {-# INLINE dateValue #-}
@@ -55,7 +55,7 @@ urlValue = (,) <$> takeTill (\c -> (c == '?') || (c =='\"')) <*> ( satisfy (== '
 ipoqueLogLine::Parser URLAccess
 ipoqueLogLine = do
     skipWhile (/= '|')
-    (lsrc, lsport)  <- (barValue *> bar *> hostPair)
+    (lsrc, lsport)  <- barValue *> bar *> hostPair
     (ldst, ldport)  <- bar *> hostPair 
     ldate           <- dateValue   
     lvhost          <- bar *> quotedValue 

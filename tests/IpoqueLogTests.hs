@@ -18,7 +18,7 @@ x = "Jun  4 23:17:00 144.32.143.3  "
 
 doParse = parseOnly ipoqueLogLine
 
-getVal p s = either (\x -> error("fail")) (\x -> p x) $ doParse s
+getVal p s = either (\x -> error "fail") p $ doParse s
 
 testFn n v f s = TestCase $ assertEqual n v (getVal f (pack s))
 

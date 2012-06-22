@@ -20,9 +20,9 @@ paramsS5 = "enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z
 x = "a line tha   should not parse"
 
 
-doParse s = parseOnly accessLogLine s
+doParse = parseOnly accessLogLine
 
-getVal p s = either (\x -> error "fail") (\x -> p x) $ doParse s
+getVal p s = either (\x -> error "fail") p $ doParse s
 testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 

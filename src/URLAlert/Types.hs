@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+-- | The core types for the URL application
 
 module URLAlert.Types (
   URLAccess (..),
@@ -8,8 +8,10 @@ module URLAlert.Types (
 
 import qualified Data.ByteString.Char8 as S
 
+-- | The scheme used to access the resource
 data Scheme = HTTP | HTTPS deriving (Show, Eq)
 
+-- | Stores a URI 
 data URI = URI {
     vhost     :: {-# UNPACK #-} !S.ByteString,
     uriPath   :: {-# UNPACK #-} !S.ByteString,
@@ -18,6 +20,7 @@ data URI = URI {
     scheme    :: Scheme
 } deriving (Show, Eq)
 
+-- | Store data about an access to a web resource
 data URLAccess = URLAccess {
     -- ts        :: !Int,         
     clientIP  :: {-# UNPACK #-} !S.ByteString,
