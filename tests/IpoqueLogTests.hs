@@ -2,28 +2,25 @@
 
 import Data.String
 import Data.Maybe
-import Data.ByteString.Char8 (readInt, pack)
+import Data.ByteString.Lazy.Char8 (pack, append)
 import Test.HUnit
 import Data.Attoparsec.Char8
 import URLAlert.Types
 import URLAlert.IpoqueLog 
 
-
-sb = "Jun  4 23:17:00 144.32.142.3 \"CampusEast2 - 144.32.142.3\"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|\"www.nap.edu\"|"
-s  = sb ++ "\"/images/footer_podicon.png\""
-s2 = sb ++ "\"/\""
-s3 = sb ++ "\"/f?q=2\""
-s4 = sb ++ "\"/f?q=3&foo=bar\""
+sb = pack "Jun  4 23:17:00 144.32.142.3 \"CampusEast2 - 144.32.142.3\"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|\"www.nap.edu\"|"
+s  = sb `append` "\"/images/footer_podicon.png\""
+s2 = sb `append` "\"/\""
+s3 = sb `append` "\"/f?q=2\""
+s4 = sb `append` "\"/f?q=3&foo=bar\""
 x = "Jun  4 23:17:00 144.32.143.3  "
 
-doParse = parseOnly ipoqueLogLine
-
-getVal p s = either (\x -> error "fail") p $ doParse s
-
-testFn n v f s = TestCase $ assertEqual n v (getVal f (pack s))
+getVal p s = p $ fromJust (head $ parseLines s)
+testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
-                (maybeResult . parse ipoqueLogLine $ fromString x)
+                      (head $ parseLines x)
+
 
 testList = [testFn "clientIP" "144.32.34.125"              clientIP s,
             testFn "vhost"    "www.nap.edu"                (vhost . uri) s,

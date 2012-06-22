@@ -1,6 +1,6 @@
 Name:                urllogs
 Version:             0.0.1
-Synopsis:            Parse ipoque urllogs
+Synopsis:            Parse squid and ipoque logfiles
 -- Description:         
 License:             GPL-3
 License-file:        LICENSE

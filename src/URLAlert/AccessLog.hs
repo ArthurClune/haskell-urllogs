@@ -1,11 +1,8 @@
--- parse standard squid logfiles 
--- see http://www.linofee.org/~jel/proxy/Squid/accesslog.shtml for log format
-
 {-# LANGUAGE OverloadedStrings #-}
-
+-- | This module parses Squid access.log files
 module URLAlert.AccessLog
     (
-      accessLogLine,
+      parseLines,
       getGzipLog,
       getLog
     ) where
@@ -16,7 +13,7 @@ import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
 import qualified Codec.Compression.GZip as GZip
-import URLAlert.Utils (toInt, toStrict)
+import URLAlert.Utils
 import URLAlert.Types
 
 data Method = GET | HEAD| POST | PUT |
@@ -60,6 +57,7 @@ urlValue2 = do
     return $! URI lvhost "/" "" (toInt lport) HTTPS
 {-# INLINE urlValue2 #-}
 
+-- | Attoparsec parser for a single line from a squid logfile
 accessLogLine::Parser URLAccess
 accessLogLine = do
     lts        <- plainValue
@@ -82,19 +80,17 @@ accessLogLine = do
     lmimeType  <- space *> endValue
     return $! URLAccess lclientIP luri
 
-parseString::SL.ByteString -> [Maybe URLAccess]
-parseString c = map (maybeResult . myParse . toStrict) (SL.lines c)
+-- | Parse a string containing a newline seperated set of lines from a squid log file
+parseLines::SL.ByteString -> [Maybe URLAccess]
+parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
     where
       myParse s = feed (parse accessLogLine s) S.empty
 
+-- | Read a gzip'd squid log file
 getGzipLog::FilePath -> IO [Maybe URLAccess]
-getGzipLog f = do
-    contents <- fmap GZip.decompress (SL.readFile f)
-    let s = parseString contents
-    return s
+getGzipLog = parseLogFile GZip.decompress parseLines
 
+-- | Read a plain squid log file
 getLog::FilePath -> IO [Maybe URLAccess]
-getLog f = do
-    contents <- SL.readFile f
-    let s = parseString contents
-    return s
+getLog = parseLogFile id parseLines
+

@@ -4,6 +4,7 @@ module URLAlert.Utils
 (
 toStrict,
 toInt,
+parseLogFile,
 (~~)
 )
 where
@@ -23,6 +24,15 @@ toStrict = S.concat . SL.toChunks
 toInt::S.ByteString->Int
 toInt = fst . fromJust . S.readInt
 {-# INLINE toInt #-}
+
+-- read a log file and apply a transform function t to the bytestring from the file
+-- e.g. ungzip before appling the parser p
+parseLogFile :: (SL.ByteString -> SL.ByteString) -> (SL.ByteString -> [b]) -> FilePath -> IO [b]
+parseLogFile t p file = do
+    contents <- fmap t (SL.readFile file)
+    let s = p contents
+    return s
+
 
 --version of toInt for debugging
 --toInt::S.ByteString->Int

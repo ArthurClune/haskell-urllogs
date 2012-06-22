@@ -1,14 +1,10 @@
---
--- read in ipoque url logs     
--- Sample data line
--- 
--- Jun  4 23:17:00 144.32.142.3 "CampusEast2 - 144.32.142.3"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|"www.nap.edu"|"/images/footer_podicon.png"
--- 
+
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | This library parses Ipoque PRX logs that have been sent to syslog
 module URLAlert.IpoqueLog
     (
-      ipoqueLogLine,
+      parseLines,
       getGzipLog,
       getLog
     ) where
@@ -52,6 +48,7 @@ urlValue::Parser (S.ByteString, S.ByteString)
 urlValue = (,) <$> takeTill (\c -> (c == '?') || (c =='\"')) <*> ( satisfy (== '?') *> takeTill (== '\"')  <|> quote *> pure "" )
 {-# INLINE urlValue #-}
 
+-- Attoparsec parser for a single log line
 ipoqueLogLine::Parser URLAccess
 ipoqueLogLine = do
     skipWhile (/= '|')
@@ -62,20 +59,17 @@ ipoqueLogLine = do
     (lpath, lparams)<- bar *> quote *> urlValue
     return $! URLAccess lsrc (URI lvhost lpath lparams (toInt ldport) HTTP)
 
-parseString::SL.ByteString -> [Maybe URLAccess]
-parseString c = map (maybeResult . myParse . toStrict) (SL.lines c)
+-- | Parse a string containing a newline seperated set of lines from an Ipoque PRX
+-- to syslog into component parts
+parseLines::SL.ByteString -> [Maybe URLAccess]
+parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
     where
       myParse s = feed (parse ipoqueLogLine s) S.empty
 
-
+-- | Read a gzip'd log file
 getGzipLog::FilePath -> IO [Maybe URLAccess]
-getGzipLog f = do
-    contents <- fmap GZip.decompress (SL.readFile f)
-    let s = parseString contents
-    return s
+getGzipLog = parseLogFile GZip.decompress parseLines
 
+-- | Read a plain log file
 getLog::FilePath -> IO [Maybe URLAccess]
-getLog f = do
-    contents <- SL.readFile f
-    let s = parseString contents
-    return s      
+getLog = parseLogFile id parseLines

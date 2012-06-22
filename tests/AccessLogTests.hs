@@ -2,9 +2,7 @@
 
 import Data.String
 import Data.Maybe
-import Data.Either
 import Data.ByteString.Char8 (unpack, readInt)
-import Data.ByteString.Lazy
 import Test.HUnit
 import Data.Attoparsec.ByteString
 import URLAlert.Types
@@ -20,13 +18,11 @@ paramsS5 = "enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z
 x = "a line tha   should not parse"
 
 
-doParse = parseOnly accessLogLine
-
-getVal p s = either (\x -> error "fail") p $ doParse s
+getVal p s = p $ fromJust (head $ parseLines s)
 testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
-                (maybeResult . parse accessLogLine $ x)
+                (head $ parseLines x)
 
 testList = [
             testFn "ClientIP" "144.32.71.165"                clientIP s1,
