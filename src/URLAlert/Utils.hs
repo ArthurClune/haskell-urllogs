@@ -33,7 +33,6 @@ parseLogFile t p file = do
     let s = p contents
     return s
 
-
 --version of toInt for debugging
 --toInt::S.ByteString->Int
 --toInt s = 
