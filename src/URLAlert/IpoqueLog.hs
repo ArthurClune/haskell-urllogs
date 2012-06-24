@@ -1,12 +1,15 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
--- | This library parses Ipoque PRX logs that have been sent to syslog
 module URLAlert.IpoqueLog
     (
+      -- | This library parses Ipoque PRX logs that have been sent to syslog
+
+      -- * Functions for parsing lines
       parseLines,
-      getGzipLog,
-      getLog
+      -- * Functions for reading files
+      URLAlert.IpoqueLog.getGZipLog,
+      URLAlert.IpoqueLog.getLog
     ) where
 
 import Prelude hiding (takeWhile, take)
@@ -14,9 +17,8 @@ import Control.Applicative
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.ByteString.Char8
-import qualified Codec.Compression.GZip as GZip
 
-import URLAlert.Utils
+import URLAlert.Utils as Utils
 import URLAlert.Types
 
 quote, bar, colon :: Parser Char
@@ -66,10 +68,10 @@ parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
     where
       myParse s = feed (parse ipoqueLogLine s) S.empty
 
--- | Read a gzip'd log file
-getGzipLog::FilePath -> IO [Maybe URLAccess]
-getGzipLog = parseLogFile GZip.decompress parseLines
+-- | Read a gzip'd squid log file
+getGZipLog::FilePath -> IO [Maybe URLAccess]
+getGZipLog = Utils.getGZipLog parseLines
 
--- | Read a plain log file
+-- | Read a plain squid log file
 getLog::FilePath -> IO [Maybe URLAccess]
-getLog = parseLogFile id parseLines
+getLog = Utils.getLog parseLines

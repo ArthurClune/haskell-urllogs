@@ -4,7 +4,8 @@ module URLAlert.Utils
 (
 toStrict,
 toInt,
-parseLogFile,
+getGZipLog,
+getLog,
 (~~)
 )
 where
@@ -12,6 +13,7 @@ where
 import Data.Maybe
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
+import Codec.Compression.GZip as GZip
 
 (~~)::S.ByteString -> S.ByteString -> S.ByteString
 (~~) = S.append
@@ -25,13 +27,18 @@ toInt::S.ByteString->Int
 toInt = fst . fromJust . S.readInt
 {-# INLINE toInt #-}
 
--- read a log file and apply a transform function t to the bytestring from the file
--- e.g. ungzip before appling the parser p
-parseLogFile :: (SL.ByteString -> SL.ByteString) -> (SL.ByteString -> [b]) -> FilePath -> IO [b]
-parseLogFile t p file = do
-    contents <- fmap t (SL.readFile file)
-    let s = p contents
-    return s
+
+-- | Read a gzip'd log file and apply parser p
+getGZipLog::(SL.ByteString -> [b]) -> FilePath -> IO [b]
+getGZipLog p f = do
+    s <- fmap GZip.decompress (SL.readFile f)
+    return (p s)
+
+-- | Read a plain log file and apply parser p
+getLog::(SL.ByteString -> [b]) -> FilePath -> IO [b]
+getLog p f = do
+    s <- SL.readFile f
+    return (p s)
 
 --version of toInt for debugging
 --toInt::S.ByteString->Int

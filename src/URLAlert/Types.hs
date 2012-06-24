@@ -1,10 +1,14 @@
 -- | The core types for the URL application
 
 module URLAlert.Types (
+  -- | This module provides types for handling URL log records
+
+  -- * Core Types
   URLAccess (..),
   URI(..),
   Scheme(..)
 ) where
+
 
 import qualified Data.ByteString.Char8 as S
 

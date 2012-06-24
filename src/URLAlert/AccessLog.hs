@@ -1,10 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
--- | This module parses Squid access.log files
 module URLAlert.AccessLog
     (
+      -- | This module parses Squid access.log files
+      --
+      
+      -- * Functions for parsing lines
       parseLines,
-      getGzipLog,
-      getLog
+      -- * Functions for reading files
+      URLAlert.AccessLog.getGZipLog,
+      URLAlert.AccessLog.getLog
     ) where
 
 import Prelude hiding (takeWhile, take)
@@ -12,8 +16,7 @@ import Control.Applicative
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
-import qualified Codec.Compression.GZip as GZip
-import URLAlert.Utils
+import URLAlert.Utils as Utils
 import URLAlert.Types
 
 data Method = GET | HEAD| POST | PUT |
@@ -87,10 +90,9 @@ parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
       myParse s = feed (parse accessLogLine s) S.empty
 
 -- | Read a gzip'd squid log file
-getGzipLog::FilePath -> IO [Maybe URLAccess]
-getGzipLog = parseLogFile GZip.decompress parseLines
+getGZipLog::FilePath -> IO [Maybe URLAccess]
+getGZipLog = Utils.getGZipLog parseLines
 
 -- | Read a plain squid log file
 getLog::FilePath -> IO [Maybe URLAccess]
-getLog = parseLogFile id parseLines
-
+getLog = Utils.getLog parseLines
