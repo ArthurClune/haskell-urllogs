@@ -3,8 +3,8 @@
 import Data.String
 import Data.Maybe
 import Data.ByteString.Char8 (unpack, readInt)
+import qualified Data.ByteString.Char8 as S
 import Test.HUnit
-import Data.Attoparsec.ByteString
 import URLAlert.Types
 import URLAlert.AccessLog
 
@@ -17,12 +17,11 @@ paramsS1 = "channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041
 paramsS5 = "enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z61jvTu7-4yC0v1FPAAAAAKdLAABlAQAAbAEAAAIAAAD4XhQAPWQAAAEAAABVU0QAVVNEAKAAWALoYAcCUxYBAgUCAQQAAAAAFyVcLgAAAAA.&tt_code=vert-8&udj=uf%28%27a%27%2C+932%2C+1330757556%29%3Buf%28%27c%27%2C+259929%2C+1330757556%29%3Buf%28%27r%27%2C+1335032%2C+1330757556%29%3Bppv%2814414%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3Bppv%2828529%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3B&cnd=!pCQBYAjZ7g8Q-L1RGAAgvcgBMAA46MEBQABI7AJQp5cBWABggwFoAHAAeACAAbwliAGeBZABAZgBAaABAagBA7ABALkBUAmufAwIqD_BAVAJrnwMCKg_yQHDB5EStQbEP9kB4C2QoPgx5D_gAZJS&ccd=!swVrMAjZ7g8Q-L1RGL3IASAA&referrer=http://www.facebook.com&media_subtypes=1&dlo=1&pp=AAABNddU1_S7iKd4KE5B0AdSOzQySMA7C1ODPw&pubclick=http%3A%2F%2Fox-d.liftdna.com%2Fw%2F1.0%2Frc%3Fts%3D0c2lkPTk1Mzh8YXVpZD05OTI2OXxtcj0yMHxtdD1INHNJQUFBQUFBQUFBRjNNelFxQ1FCU0c0WHM1YTRVWnpfeTZibDJRUlVzWko0UEFhcGhVQlBIZU8yTWJpMW05SDgtY0dWNFRRdG5Ib2MzQURmWDlDaVdnTkVLZzA3azEzdWVDSzVzM3JSSjVvd3dyR3BUT2FBWXI3NkhraUV4TExhVmFsX2ltQTlYeFZGOE9lektCeWtvMGlkTnBMdWhsNEI5cFI4czFKdE5SOElJcG1jcEhxc0l5a2NMVkRmMmFZWFRkMEVLcDJKSTJfeVJ5cm5ZckNQRWZURnN3MVhIY2dDS0JzQVhoRjRndnVIV2JEZG15ZkFBY3Q2TDBLUUVBQUF8bXVpPTgwODYxYmEwLTg1ZWMtNDJlMy1hMjIyLWY1MTk5YWUxMmU1MXxhaWQ9MjQwMTF8bT0xfHB1Yj0xMjI0N3xsaWQ9MjAwMjV8YWk9NDA4YzlkZjgtODVmZS02ODkzLTQ5MzgtY2NiZmQyMDQ2MDFlfHQ9NHxtYz1VU0R8cmlkPTM1ODQ0M2E3LTk4Y2MtNDE2OS1iZTY0LWI2ODAyYjM1YTg3MHxibT18cGM9VVNEfHA9NjB8YWM9VVNEfHBtPVBSSUNJTkcuQ1BNfHJ0PTEzMzA3NTc1NTZ8cHI9NDB8YWR2PTEwMzk%26r%3D"
 x = "a line tha   should not parse"
 
-
-getVal p s = p $ fromJust (head $ parseLines s)
+getVal p s = p $ fromJust (head $ parseLines accessLogLine s)
 testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
-                (head $ parseLines x)
+                (head $ parseLines accessLogLine x)
 
 testList = [
             testFn "ClientIP" "144.32.71.165"                clientIP s1,

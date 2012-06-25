@@ -1,20 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module URLAlert.AccessLog
     (
       -- | This module parses Squid access.log files
       --
       
       -- * Functions for parsing lines
+      accessLogLine,
       parseLines,
       -- * Functions for reading files
-      URLAlert.AccessLog.getGZipLog,
-      URLAlert.AccessLog.getLog
+      parseGZipLog,
+      parseLog,
     ) where
 
 import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.ByteString.Char8 as S
-import qualified Data.ByteString.Lazy.Char8 as SL
 import Data.Attoparsec.Char8
 import URLAlert.Utils as Utils
 import URLAlert.Types
@@ -52,7 +53,6 @@ buildURI lvhost lPath lParams lscheme  =
     where
       a = S.split ':' lvhost
 
-
 -- CONNECT type lines
 urlValue2::Parser URI
 urlValue2 = do
@@ -60,7 +60,7 @@ urlValue2 = do
     return $! URI lvhost "/" "" (toInt lport) HTTPS
 {-# INLINE urlValue2 #-}
 
--- | Attoparsec parser for a single line from a squid logfile
+-- | Parser for a single line from a squid logfile
 accessLogLine::Parser URLAccess
 accessLogLine = do
     lts        <- plainValue
@@ -82,17 +82,3 @@ accessLogLine = do
     lhierarchy <- space *> plainValue
     lmimeType  <- space *> endValue
     return $! URLAccess lclientIP luri
-
--- | Parse a string containing a newline seperated set of lines from a squid log file
-parseLines::SL.ByteString -> [Maybe URLAccess]
-parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
-    where
-      myParse s = feed (parse accessLogLine s) S.empty
-
--- | Read a gzip'd squid log file
-getGZipLog::FilePath -> IO [Maybe URLAccess]
-getGZipLog = Utils.getGZipLog parseLines
-
--- | Read a plain squid log file
-getLog::FilePath -> IO [Maybe URLAccess]
-getLog = Utils.getLog parseLines

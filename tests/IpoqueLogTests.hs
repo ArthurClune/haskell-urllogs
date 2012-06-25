@@ -4,7 +4,6 @@ import Data.String
 import Data.Maybe
 import Data.ByteString.Lazy.Char8 (pack, append)
 import Test.HUnit
-import Data.Attoparsec.Char8
 import URLAlert.Types
 import URLAlert.IpoqueLog 
 
@@ -15,11 +14,11 @@ s3 = sb `append` "\"/f?q=2\""
 s4 = sb `append` "\"/f?q=3&foo=bar\""
 x = "Jun  4 23:17:00 144.32.143.3  "
 
-getVal p s = p $ fromJust (head $ parseLines s)
+getVal p s = p $ fromJust (head $ parseLines ipoqueLogLine s)
 testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
 testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
-                      (head $ parseLines x)
+                      (head $ parseLines ipoqueLogLine x)
 
 
 testList = [testFn "clientIP" "144.32.34.125"              clientIP s,
