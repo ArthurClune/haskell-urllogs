@@ -1,5 +1,5 @@
 
-{-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module URLAlert.IpoqueLog
     (
@@ -7,10 +7,8 @@ module URLAlert.IpoqueLog
 
       -- * Functions for parsing lines
       ipoqueLogLine,
-      parseLines,
-      -- * Functions for reading files
+      IpoqueLogLine(..),
       parseGZipLog,
-      parseLog
     ) where
 
 import Prelude hiding (takeWhile, take)
@@ -20,6 +18,14 @@ import Data.Attoparsec.ByteString.Char8
 
 import URLAlert.Utils as Utils
 import URLAlert.Types
+
+data IpoqueLogLine = IpoqueLogLine {
+    -- ts        :: !Int,         
+    -- | Store the requesting client's IP as a bytestring (for now)
+    clientIP  :: {-# UNPACK #-} !S.ByteString,
+    uri       :: URI   
+} deriving (Show, Eq)
+
 
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
@@ -51,7 +57,7 @@ urlValue = (,) <$> takeTill (\c -> (c == '?') || (c =='\"')) <*> ( satisfy (== '
 {-# INLINE urlValue #-}
 
 -- Parser for a single log line
-ipoqueLogLine::Parser URLAccess
+ipoqueLogLine::Parser IpoqueLogLine
 ipoqueLogLine = do
     skipWhile (/= '|')
     (lsrc, lsport)  <- barValue *> bar *> hostPair
@@ -59,4 +65,9 @@ ipoqueLogLine = do
     ldate           <- dateValue   
     lvhost          <- bar *> quotedValue 
     (lpath, lparams)<- bar *> quote *> urlValue
-    return $! URLAccess lsrc (URI lvhost lpath lparams (toInt ldport) HTTP)
+    return $! IpoqueLogLine lsrc (URI lvhost lpath lparams (toInt ldport) HTTP)
+
+
+instance LogFileParser IpoqueLogLine where
+  parseLine = ipoqueLogLine
+

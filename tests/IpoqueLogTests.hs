@@ -14,25 +14,23 @@ s3 = sb `append` "\"/f?q=2\""
 s4 = sb `append` "\"/f?q=3&foo=bar\""
 x = "Jun  4 23:17:00 144.32.143.3  "
 
-getVal p s = p $ fromJust (head $ parseLines ipoqueLogLine s)
+getVal p s = p $ fromJust (head $ parseLines s)
 testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
-testFail = TestCase $ assertEqual "Invalid line should fail to parse" Nothing 
-                      (head $ parseLines ipoqueLogLine x)
+testFail s = TestCase $ assertEqual "fail" Nothing (head $ parseLines s::Maybe IpoqueLogLine)
 
-
-testList = [testFn "clientIP" "144.32.34.125"              clientIP s,
-            testFn "vhost"    "www.nap.edu"                (vhost . uri) s,
-            testFn "path"     "/images/footer_podicon.png" (uriPath  . uri) s,
-            testFn "path"     "/"                          (uriPath . uri) s2,
-            testFn "path"     "/f"                         (uriPath  . uri) s3,
-            testFn "params"   ""                           (uriParams . uri) s,
-            testFn "params"   ""                           (uriParams . uri) s2,
-            testFn "params"   "q=2"                        (uriParams . uri) s3,
-            testFn "params"   "q=3&foo=bar"                (uriParams . uri) s4,            
-            testFn "port"     80                           (port . uri) s,
-            testFn "scheme"   HTTP                         (scheme . uri) s,
-            testFail
+testList = [testFn  "clientIP" "144.32.34.125"              clientIP           s
+            , testFn "vhost"    "www.nap.edu"                (vhost . uri)     s
+            , testFn "path"     "/images/footer_podicon.png" (uriPath  . uri)  s
+            , testFn "params"   ""                           (uriParams . uri) s
+            , testFn "port"     80                           (port . uri)      s
+            , testFn "scheme"   HTTP                         (scheme . uri)    s
+            , testFn "path"     "/"                          (uriPath . uri)   s2
+            , testFn "params"   ""                           (uriParams . uri) s2
+            , testFn "path"     "/f"                         (uriPath  . uri)  s3
+            , testFn "params"   "q=2"                        (uriParams . uri) s3
+            , testFn "params"   "q=3&foo=bar"                (uriParams . uri) s4        
+            , testFail x
            ]
 
 main = runTestTT $ TestList testList

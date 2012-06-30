@@ -1,16 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module URLAlert.AccessLog
+module URLAlert.SquidLog
     (
       -- | This module parses Squid access.log files
       --
       
       -- * Functions for parsing lines
-      accessLogLine,
-      parseLines,
-      -- * Functions for reading files
+      squidLogLine,
+      SquidLogLine(..),
       parseGZipLog,
-      parseLog,
     ) where
 
 import Prelude hiding (takeWhile, take)
@@ -23,6 +21,14 @@ import URLAlert.Types
 data Method = GET | HEAD| POST | PUT |
               CONNECT | ICP_QUERY | MNONE      
               deriving (Show, Eq)
+
+-- | Store data about an access to a web resource
+data SquidLogLine = SquidLogLine {
+    -- ts        :: !Int,         
+    -- | Store the requesting client's IP as a bytestring (for now)
+    clientIP  :: {-# UNPACK #-} !S.ByteString,
+    uri       :: URI   
+} deriving (Show, Eq)
 
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
@@ -61,8 +67,8 @@ urlValue2 = do
 {-# INLINE urlValue2 #-}
 
 -- | Parser for a single line from a squid logfile
-accessLogLine::Parser URLAccess
-accessLogLine = do
+squidLogLine::Parser SquidLogLine
+squidLogLine = do
     lts        <- plainValue
     lelapsed   <- skipSpace *> plainValue
     lclientIP  <- space *> plainValue
@@ -81,4 +87,7 @@ accessLogLine = do
     lident     <- space *> plainValue
     lhierarchy <- space *> plainValue
     lmimeType  <- space *> endValue
-    return $! URLAccess lclientIP luri
+    return $! SquidLogLine lclientIP luri
+
+instance LogFileParser SquidLogLine where
+  parseLine = squidLogLine

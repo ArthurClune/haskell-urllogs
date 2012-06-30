@@ -30,12 +30,12 @@ Executable run-ipoque-tests
   Build-depends: base, zlib, attoparsec, bytestring, HUnit
 
 Executable run-squid-tests
-  Main-is: AccessLogTests.hs
+  Main-is: SquidLogTests.hs
   hs-source-dirs: tests, src
   Build-depends: base, zlib, attoparsec, bytestring, HUnit, text
 
 library
-    Exposed-Modules: URLAlert.IpoqueLog, URLAlert.AccessLog, URLAlert.Types
+    Exposed-Modules: URLAlert.IpoqueLog, URLAlert.SquidLog, URLAlert.Types
     hs-source-dirs: src
     Other-modules:   URLAlert.Utils
     Build-depends:   base, bytestring, attoparsec

@@ -4,11 +4,11 @@ module URLAlert.Types (
   -- | This module provides types for handling URL log records
 
   -- * Core Types
-  URLAccess (..),
   URI(..),
   Scheme(..),
   -- * Typeclasses
   LogFileParser,
+  parseLine,
   parseLines,
   parseGZipLog,
   parseLog
@@ -38,35 +38,28 @@ data URI = URI {
     scheme    :: Scheme
 } deriving (Show, Eq)
 
--- | Store data about an access to a web resource
-data URLAccess = URLAccess {
-    -- ts        :: !Int,         
-    -- | Store the requesting client's IP as a bytestring (for now)
-    clientIP  :: {-# UNPACK #-} !S.ByteString,
-    uri       :: URI   
-} deriving (Show, Eq)
-
 -- | Typeclass for URL log parsers
 --
 -- Users must define a parser that parses a single line from the logfile
 class LogFileParser b where
+  -- | Parse a Bytestring contraining a single line
+  parseLine::Parser b
 
   -- | Parse a string containing a newline seperated set of lines
-  parseLines::Parser b -> SL.ByteString -> [Maybe b]
-  parseLines p c = map (maybeResult . myParse . toStrict) (SL.lines c)
+  parseLines::SL.ByteString -> [Maybe b]
+  parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
       where
-        myParse s = feed (parse p s) S.empty
+        myParse s = feed (parse parseLine s) S.empty
 
   -- | Read a gzip'd log file
-  parseGZipLog::Parser b -> FilePath -> IO [Maybe b]
-  parseGZipLog p f = do
+  parseGZipLog::FilePath -> IO [Maybe b]
+  parseGZipLog f = do
       s <- fmap GZip.decompress (SL.readFile f)
-      return (parseLines p s)
+      return (parseLines s)
 
   -- | Read a plain log file
-  parseLog::Parser b -> FilePath -> IO [Maybe b]
-  parseLog p f = do
+  parseLog::FilePath -> IO [Maybe b]
+  parseLog f = do
       s <- SL.readFile f
-      return (parseLines p s)
+      return (parseLines s)
 
-instance LogFileParser URLAccess
