@@ -4,11 +4,14 @@
 module URLAlert.IpoqueLog
     (
       -- | This library parses Ipoque PRX logs that have been sent to syslog
+      -- 
 
-      -- * Functions for parsing lines
-      ipoqueLogLine,
+      -- * Types
       IpoqueLogLine(..),
-      parseGZipLog,
+      -- * Functions for parsing lines
+
+      ipoqueLogLine,
+      parseGZipLog
     ) where
 
 import Prelude hiding (takeWhile, take)
@@ -19,13 +22,19 @@ import Data.Attoparsec.ByteString.Char8
 import URLAlert.Utils as Utils
 import URLAlert.Types
 
+-- | Stores a Ipoque URL log line
 data IpoqueLogLine = IpoqueLogLine {
-    -- ts        :: !Int,         
-    -- | Store the requesting client's IP as a bytestring (for now)
-    clientIP  :: {-# UNPACK #-} !S.ByteString,
-    uri       :: URI   
+    -- | Dates in textual format YYYYMMDDHHMMSS
+    date     :: {-# UNPACK #-} !S.ByteString,
+    -- | IP of client requesting this resource
+    clientIP :: {-# UNPACK #-} !S.ByteString,
+    -- | Port at the client end
+    sport    :: {-# UNPACK #-} !Int,
+    -- | IP of destination
+    dst      :: {-# UNPACK #-} !S.ByteString,
+    -- | The URI of the resource request
+    uri      :: URI
 } deriving (Show, Eq)
-
 
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
@@ -56,7 +65,7 @@ urlValue::Parser (S.ByteString, S.ByteString)
 urlValue = (,) <$> takeTill (\c -> (c == '?') || (c =='\"')) <*> ( satisfy (== '?') *> takeTill (== '\"')  <|> quote *> pure "" )
 {-# INLINE urlValue #-}
 
--- Parser for a single log line
+-- | Parser for a single log line
 ipoqueLogLine::Parser IpoqueLogLine
 ipoqueLogLine = do
     skipWhile (/= '|')
@@ -65,7 +74,8 @@ ipoqueLogLine = do
     ldate           <- dateValue   
     lvhost          <- bar *> quotedValue 
     (lpath, lparams)<- bar *> quote *> urlValue
-    return $! IpoqueLogLine lsrc (URI lvhost lpath lparams (toInt ldport) HTTP)
+    return $! IpoqueLogLine ldate lsrc (toInt lsport) ldst
+                (URI lvhost lpath lparams (toInt ldport) HTTP)
 
 
 instance LogFileParser IpoqueLogLine where

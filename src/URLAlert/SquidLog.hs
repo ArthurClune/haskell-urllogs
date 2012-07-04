@@ -4,10 +4,14 @@ module URLAlert.SquidLog
     (
       -- | This module parses Squid access.log files
       --
-      
+      -- See http://www.linofee.org/~jel/proxy/Squid/accesslog.shtml for
+      -- details of the log format
+
+      -- * Types
+      Method,
+      SquidLogLine(..),
       -- * Functions for parsing lines
       squidLogLine,
-      SquidLogLine(..),
       parseGZipLog,
     ) where
 
@@ -15,20 +19,42 @@ import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.ByteString.Char8 as S
 import Data.Attoparsec.Char8
-import URLAlert.Utils as Utils
+import URLAlert.Utils (toInt)
 import URLAlert.Types
 
+-- | Store the type of HTTP request made
 data Method = GET | HEAD| POST | PUT |
               CONNECT | ICP_QUERY | MNONE      
               deriving (Show, Eq)
 
--- | Store data about an access to a web resource
+-- | Store data about an access to a web resource from a squid log file
 data SquidLogLine = SquidLogLine {
-    -- ts        :: !Int,         
-    -- | Store the requesting client's IP as a bytestring (for now)
+    -- | Time of request to nearest second
+    ts        :: {-# UNPACK #-} !Int,     
+    -- | Elapsed time to fulfil request      
+    elapsed   :: {-# UNPACK #-} !Int,
+    -- | IP of client requesting this resource
     clientIP  :: {-# UNPACK #-} !S.ByteString,
-    uri       :: URI   
+    -- | Action (e.g. cache miss)
+    action    :: {-# UNPACK #-} !S.ByteString,
+    -- | Size of result (bytes)
+    size      :: {-# UNPACK #-} !Int,
+    -- | Method of request
+    method    :: Method,
+    -- | URI requested
+    uri       :: URI,
+    -- | The result of the RFC931/ident lookup of the client username. 
+    -- If RFC931/ident lookup is disabled (default: `ident_lookup off'), it is logged as - .
+    ident     :: {-# UNPACK #-} !S.ByteString,
+    -- | A description of how and where the requested object was fetched.
+    -- This includes the IP of the remote server and should be parsed further
+    hierarchy :: {-# UNPACK #-} !S.ByteString,
+    -- | Mimetype of result
+    mimeType  :: {-# UNPACK #-} !S.ByteString
 } deriving (Show, Eq)
+
+instance Ord SquidLogLine where
+    l1 `compare` l2 = (ts l1) `compare` (ts l2)
 
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
@@ -87,7 +113,9 @@ squidLogLine = do
     lident     <- space *> plainValue
     lhierarchy <- space *> plainValue
     lmimeType  <- space *> endValue
-    return $! SquidLogLine lclientIP luri
+    return $! SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
+                    laction (toInt lsize) lmethod luri lident
+                    lhierarchy lmimeType
 
 instance LogFileParser SquidLogLine where
   parseLine = squidLogLine

@@ -1,2 +1,3 @@
 .virthualenv
 dist
+*.sublime-*

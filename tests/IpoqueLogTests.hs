@@ -1,13 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Data.String
 import Data.Maybe
 import Data.ByteString.Lazy.Char8 (pack, append)
 import Test.HUnit
 import URLAlert.Types
 import URLAlert.IpoqueLog 
 
-sb = pack "Jun  4 23:17:00 144.32.142.3 \"CampusEast2 - 144.32.142.3\"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|\"www.nap.edu\"|"
+sb = "Jun  4 23:17:00 144.32.142.3 \"CampusEast2 - 144.32.142.3\"|host|144.32.34.125:60326|144.171.20.6:80|2011|06|04|23|17|00|\"www.nap.edu\"|"
 s  = sb `append` "\"/images/footer_podicon.png\""
 s2 = sb `append` "\"/\""
 s3 = sb `append` "\"/f?q=2\""
