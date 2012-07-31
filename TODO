@@ -1,4 +1,12 @@
 
+Print total number of lines in file
+
+Write code to get backlists from the web
+
+Add date and time stuff
+
+Implement measurement fns for urls
+
 Rewrite both to use conduits
 http://hackage.haskell.org/package/zlib-conduit-0.2.0.1
 

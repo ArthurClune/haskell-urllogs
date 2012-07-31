@@ -1,3 +1,6 @@
 .virthualenv
 dist
 *.sublime-*
+*.o
+*.hi
+Setup
