@@ -1,19 +1,22 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad
+--import Control.Monad
+import System.Environment
 
 import qualified URLAlert.SquidLog as SquidLog
 import qualified URLAlert.IpoqueLog as IpoqueLog
 
+parseFiles :: FilePath -> FilePath -> IO (Int, Int)
+parseFiles f1 f2 = do
+    l1 <- IpoqueLog.parseGZipLog f1::IO [Maybe IpoqueLog.IpoqueLogLine]
+    l2 <- SquidLog.parseGZipLog  f2::IO [Maybe SquidLog.SquidLogLine]
+    let len1 = length l1
+    let len2 = length l2
+    return (len1, len2)
+
 main::IO()
 main = do      
-    --print =<< (IpoqueLog.parseGZipLog 
-    --    "/Users/arthur/Work/data/url.log.1.gz"::IO [Maybe IpoqueLog.IpoqueLogLine])
-    --print =<< (SquidLog.parseGZipLog 
-    --    "/Users/arthur/Work/data/access.log-20120621.gz"::IO [Maybe SquidLog.SquidLogLine])
-
-   len1 <- liftM length (IpoqueLog.parseGZipLog "/Users/arthur/Work/data/url.log.1.gz"::IO [Maybe IpoqueLog.IpoqueLogLine])
-   len2 <- liftM length (SquidLog.parseGZipLog  "/Users/arthur/Work/data/access.log-20120621.gz"::IO [Maybe SquidLog.SquidLogLine])
-
-   print $ "file1 has length" ++ (show len1) ++ " and file2 has length" ++ (show len2)
+    args <- getArgs
+    (len1, len2) <- parseFiles (head args) (last args)
+    print $ "file1 has length " ++ show len1 ++ " and file2 has length " ++ show len2

@@ -11,6 +11,7 @@ module URLAlert.IpoqueLog
       -- * Functions for parsing lines
 
       ipoqueLogLine,
+      parseLog,
       parseGZipLog
     ) where
 
@@ -35,6 +36,9 @@ data IpoqueLogLine = IpoqueLogLine {
     -- | The URI of the resource request
     uri      :: URI
 } deriving (Show, Eq)
+
+instance Ord IpoqueLogLine where
+  l1 `compare` l2 = date l1 `compare` date l2
 
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')

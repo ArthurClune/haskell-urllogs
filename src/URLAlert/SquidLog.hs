@@ -12,6 +12,7 @@ module URLAlert.SquidLog
       SquidLogLine(..),
       -- * Functions for parsing lines
       squidLogLine,
+      parseLog,
       parseGZipLog,
     ) where
 
@@ -54,7 +55,7 @@ data SquidLogLine = SquidLogLine {
 } deriving (Show, Eq)
 
 instance Ord SquidLogLine where
-    l1 `compare` l2 = (ts l1) `compare` (ts l2)
+    l1 `compare` l2 = ts l1 `compare` ts l2
 
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
