@@ -1,5 +1,5 @@
 
-{-# LANGUAGE OverloadedStrings, RankNTypes #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 --import Control.Monad
 import System.Environment
@@ -10,7 +10,7 @@ import qualified URLAlert.IpoqueLog as IpoqueLog
 -- | Apply function f to each parsed "line" from a  file 
 -- given by the parser p, returning the result
 --analyseFile :: forall t (m :: * -> *) b. Monad m => (t -> b) -> m t -> m b
-analyseFile :: forall b c . (forall a . [a] -> b) -> IO [c] -> IO b
+analyseFile :: ([a] -> b) -> IO [a] -> IO b
 analyseFile f l = do
     ls <- l
     let v1 = f ls
