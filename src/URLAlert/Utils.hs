@@ -23,13 +23,3 @@ toStrict = S.concat . SL.toChunks
 toInt::S.ByteString->Int
 toInt = fst . fromJust . S.readInt
 {-# INLINE toInt #-}
-
---version of toInt for debugging
---toInt::S.ByteString->Int
---toInt s = 
---    case n of
---        Nothing      -> 123456789987654321
---        Just (n2, _) -> n2 
---    where
---        n = S.readInt s
---{-# INLINE toInt #-}

@@ -19,7 +19,7 @@ flag optimize
 Executable urllogs
   Main-is: urllogs.hs
   hs-source-dirs: src
-  Build-depends: base, zlib, attoparsec, bytestring, text
+  Build-depends: base, zlib, attoparsec, bytestring, text, safe
   ghc-options: -Wall
   if flag(optimize)
     ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr

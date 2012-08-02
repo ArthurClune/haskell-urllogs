@@ -3,22 +3,26 @@
 
 --import Control.Monad
 import System.Environment
+import Safe
 
-import qualified URLAlert.SquidLog as SquidLog
+--import qualified URLAlert.SquidLog as SquidLog
 import qualified URLAlert.IpoqueLog as IpoqueLog
 
--- | Apply function f to each parsed "line" from a  file 
--- given by the parser p, returning the result
---analyseFile :: forall t (m :: * -> *) b. Monad m => (t -> b) -> m t -> m b
-analyseFile :: ([a] -> b) -> IO [a] -> IO b
-analyseFile f l = do
-    ls <- l
-    let v1 = f ls
-    return v1
+-- | Apply function f to a list of list of lines ls 
+-- combining the results with g
+analyseFiles :: (a -> b) -> ([b] -> c) -> [a] -> c
+analyseFiles f g ls = g $ map f ls
+
+parseArgs::IO [FilePath]
+parseArgs = do
+    args <- getArgs
+    if length args > 0
+        then return args
+        else abort "Usage: urllogs.hs [file1] <file2> ...."
 
 main::IO()
 main = do      
-    args <- getArgs
-    len1 <- analyseFile length (IpoqueLog.parseGZipLog $ head args::IO [Maybe IpoqueLog.IpoqueLogLine])
-    len2 <- analyseFile length (SquidLog.parseGZipLog  $ last args::IO [Maybe SquidLog.SquidLogLine])
-    print $ "file1 has length " ++ show len1 ++ " and file2 has length " ++ show len2
+    files <- parseArgs
+    logLines <- (mapM IpoqueLog.parseGZipLog files)::IO [[Maybe IpoqueLog.IpoqueLogLine]]
+    let len1 = analyseFiles length (foldl (+) 0) logLines
+    print $ "files have " ++ show len1 ++ " log lines"
