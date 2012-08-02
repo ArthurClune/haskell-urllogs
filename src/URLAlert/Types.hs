@@ -18,7 +18,7 @@ import URLAlert.Utils (toStrict)
 import Codec.Compression.GZip as GZip
 
 -- | The scheme used to access the resource
-data Scheme = HTTP | HTTPS deriving (Show, Eq) 
+data Scheme = HTTP | HTTPS | NONE deriving (Show, Eq) 
 
 -- | Stores a URI 
 data URI = URI {
@@ -30,7 +30,7 @@ data URI = URI {
     uriParams :: {-# UNPACK #-} !S.ByteString,
     -- | The port connected to on the server (e.g. 80)
     port      :: {-# UNPACK #-} !Int,
-    -- | Either HTTP or HTTPS for now
+    -- | Either HTTP, HTTPS or NONE for error lines
     scheme    :: Scheme
 } deriving (Show, Eq)
 

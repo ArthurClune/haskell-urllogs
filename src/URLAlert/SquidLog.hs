@@ -16,6 +16,8 @@ module URLAlert.SquidLog
       parseGZipLog,
     ) where
 
+--import Debug.Trace (trace)
+
 import Prelude hiding (takeWhile, take)
 import Control.Applicative
 import qualified Data.ByteString.Char8 as S
@@ -65,34 +67,52 @@ endValue::Parser S.ByteString
 endValue = takeWhile1 (inClass "-a-z/")
 {-# INLINE endValue #-}
 
+-- parse a vhost.
+-- sample vhost values
+--[fe80::215:99ff:fe4a:3d45%2513]:80
+--[fe80::215:99ff:fe4a:3d45%2513]
+-- www.bbc.co.uk:80
+-- www.bbc.co.uk
+parseVHost::Parser (S.ByteString, S.ByteString)
+parseVHost = do
+  (lvhost, lport) <-    (,) <$> ipv6host <*>  (satisfy (== ':') *> takeWhile1 (/= '/'))
+                    <|> (,) <$> ipv6host <*>  pure "__not__"
+                    <|> (,) <$> (takeWhile1 (/= ':') <*. ":") <*> takeWhile1 (/= '/')
+                    <|> (,) <$> takeWhile1 (/= '/') <*> pure "__not__"
+  return (lvhost, lport)
+
 -- parse a url.
 urlValue1::Parser URI
 urlValue1 = do 
         lscheme         <- "http://" .*> pure HTTP <|> "https://" .*> pure HTTPS
-        lvhost          <- takeTill (== '/')
-        (lPath, lParams) <- (,) <$> takeTill (== '?') <* char '?' <*> takeTill (== ' ')
+        (lvhost, lport) <- parseVHost
+        (lpath, lparams) <- (,) <$> takeTill (== '?') <* char '?' <*> takeTill (== ' ')
                              <|> (,) <$> takeTill (== ' ') <*> pure ""
-        return $! buildURI lvhost lPath lParams lscheme
+        case lport of
+            "__not__" -> case lscheme of
+                HTTP  -> return $! URI lvhost lpath lparams 80 lscheme
+                HTTPS -> return $! URI lvhost lpath lparams 443 lscheme
+                _     -> error "Parse failed in urlValue1"
+            _ -> return $! URI lvhost lpath lparams (toInt lport) lscheme
 {-# INLINE urlValue1 #-}
 
-buildURI:: S.ByteString -> S.ByteString -> S.ByteString -> Scheme -> URI
-buildURI lvhost lPath lParams lscheme  = 
-    case a of
-      [v]    -> case lscheme of 
-                  HTTP  -> URI v lPath lParams 80 lscheme
-                  HTTPS -> URI v lPath lParams 443 lscheme
-      [v, p] -> URI v lPath lParams (toInt p) lscheme
-      --_      -> error "parse error"
-      _      -> URI "rubbish.com" "" "" 80 HTTP
-    where
-      a = S.split ':' lvhost
+ipv6host::Parser S.ByteString
+ipv6host = satisfy (== '[') *> takeWhile1 (/= ']') <* satisfy (== ']')
+{-# INLINE ipv6host #-}
 
 -- CONNECT type lines
 urlValue2::Parser URI
 urlValue2 = do
-    (lvhost, lport) <- (,) <$> takeTill (==':') <* char ':' <*> takeTill (== ' ')
+    (lvhost, lport) <- (,) <$> takeTill (== ':') <* char ':' <*> takeWhile1 (isDigit)
     return $! URI lvhost "/" "" (toInt lport) HTTPS
 {-# INLINE urlValue2 #-}
+
+-- NONE type lines
+-- 20 Jun 2012 06:56:37 144.32.76.250 400 NONE error:request-too-large text/html
+urlValue3::Parser URI
+urlValue3 = do
+  text <- takeTill (== ' ')
+  return $! URI text "" "" 0 NONE
 
 -- | Parser for a single line from a squid logfile
 squidLogLine::Parser SquidLogLine
@@ -111,7 +131,7 @@ squidLogLine = do
                              string "ICP_QUERY" *> pure ICP_QUERY <|>
                              string "NONE"      *> pure MNONE
                             )
-    luri <- space *> urlValue1 <|> space *> urlValue2
+    luri <- space *> urlValue1 <|> space *> urlValue2 <|> space *> urlValue3
     lident     <- space *> plainValue
     lhierarchy <- space *> plainValue
     lmimeType  <- space *> endValue
