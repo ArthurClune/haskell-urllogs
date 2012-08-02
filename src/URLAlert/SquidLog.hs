@@ -82,7 +82,8 @@ buildURI lvhost lPath lParams lscheme  =
                   HTTP  -> URI v lPath lParams 80 lscheme
                   HTTPS -> URI v lPath lParams 443 lscheme
       [v, p] -> URI v lPath lParams (toInt p) lscheme
-      _      -> error "parse error"
+      --_      -> error "parse error"
+      _      -> URI "rubbish.com" "" "" 80 HTTP
     where
       a = S.split ':' lvhost
 
