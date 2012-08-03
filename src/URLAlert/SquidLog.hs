@@ -8,7 +8,7 @@ module URLAlert.SquidLog
       -- details of the log format
 
       -- * Types
-      Method,
+      Method(..),
       SquidLogLine(..),
       -- * Functions for parsing lines
       squidLogLine,
@@ -40,6 +40,8 @@ data SquidLogLine = SquidLogLine {
     clientIP  :: {-# UNPACK #-} !S.ByteString,
     -- | Action (e.g. cache miss)
     action    :: {-# UNPACK #-} !S.ByteString,
+    -- | HTTP result code for this request
+    resultCode:: {-# UNPACK #-} !Int,
     -- | Size of result (bytes)
     size      :: {-# UNPACK #-} !Int,
     -- | Method of request
@@ -50,8 +52,9 @@ data SquidLogLine = SquidLogLine {
     -- If RFC931/ident lookup is disabled (default: `ident_lookup off'), it is logged as - .
     ident     :: {-# UNPACK #-} !S.ByteString,
     -- | A description of how and where the requested object was fetched.
-    -- This includes the IP of the remote server and should be parsed further
     hierarchy :: {-# UNPACK #-} !S.ByteString,
+    -- This includes the IP of the remote server 
+    remIP :: {-# UNPACK #-} !S.ByteString,
     -- | Mimetype of result
     mimeType  :: {-# UNPACK #-} !S.ByteString
 } deriving (Show, Eq)
@@ -62,6 +65,10 @@ instance Ord SquidLogLine where
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
 {-# INLINE plainValue #-}
+
+slashPair::Parser (S.ByteString, S.ByteString)
+slashPair = (,) <$> (space *> takeWhile1 (/= '/') <*. "/") <*> takeWhile1 (/= ' ')
+{-# INLINE slashPair #-}
 
 endValue::Parser S.ByteString
 endValue = takeWhile1 (inClass "-a-z/")
@@ -77,9 +84,11 @@ parseVHost::Parser (S.ByteString, S.ByteString)
 parseVHost = do
   (lvhost, lport) <-    (,) <$> ipv6host <*>  (satisfy (== ':') *> takeWhile1 (/= '/'))
                     <|> (,) <$> ipv6host <*>  pure "__not__"
-                    <|> (,) <$> (takeWhile1 (/= ':') <*. ":") <*> takeWhile1 (/= '/')
+                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":") <*> takeWhile1 (/= '/')
                     <|> (,) <$> takeWhile1 (/= '/') <*> pure "__not__"
   return (lvhost, lport)
+{-# INLINE parseVHost #-}
+
 
 -- parse a url.
 urlValue1::Parser URI
@@ -120,7 +129,7 @@ squidLogLine = do
     lts        <- plainValue
     lelapsed   <- skipSpace *> plainValue
     lclientIP  <- space *> plainValue
-    laction    <- space *> plainValue
+    (laction, lresult) <- slashPair
     lsize      <- space *> plainValue
     lmethod    <- space *> (
                              string "GET"       *> pure GET  <|>
@@ -131,13 +140,13 @@ squidLogLine = do
                              string "ICP_QUERY" *> pure ICP_QUERY <|>
                              string "NONE"      *> pure MNONE
                             )
-    luri <- space *> urlValue1 <|> space *> urlValue2 <|> space *> urlValue3
+    luri       <- space *> urlValue1 <|> space *> urlValue2 <|> space *> urlValue3
     lident     <- space *> plainValue
-    lhierarchy <- space *> plainValue
+    (lhierarchy, lremip) <- slashPair
     lmimeType  <- space *> endValue
     return $! SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
-                    laction (toInt lsize) lmethod luri lident
-                    lhierarchy lmimeType
+                    laction (toInt lresult) (toInt lsize) lmethod 
+                    luri lident lhierarchy lremip lmimeType
 
 instance LogFileParser SquidLogLine where
   parseLine = squidLogLine

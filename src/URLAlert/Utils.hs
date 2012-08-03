@@ -12,7 +12,7 @@ where
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
 
-import Debug.Trace (trace)
+--import Debug.Trace (trace)
 
 (~~)::S.ByteString -> S.ByteString -> S.ByteString
 (~~) = S.append
@@ -26,7 +26,7 @@ toStrict = S.concat . SL.toChunks
 toInt::S.ByteString->Int
 toInt s = case S.readInt s of
     Just (x, _) -> x
-    --Nothing     -> error "error in toInt"
-    Nothing     -> trace ( "error in toInt string is " ++ show s)  0
+    Nothing     -> error "error in toInt"
+    --Nothing     -> trace ( "error in toInt string is " ++ show s)  0
 
 {-# INLINE toInt #-}
