@@ -117,7 +117,7 @@ urlValue2 = do
 {-# INLINE urlValue2 #-}
 
 -- NONE type lines
--- 20 Jun 2012 06:56:37 144.32.76.250 400 NONE error:request-too-large text/html
+-- 20 Jun 2012 06:56:37 192.168.76.250 400 NONE error:request-too-large text/html
 urlValue3::Parser URI
 urlValue3 = do
   text <- takeTill (== ' ')

@@ -1,22 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.Maybe
-import Data.ByteString.Lazy.Char8 (append)
 import Test.HUnit
 import URLAlert.Types
 import URLAlert.SquidLog
 import Data.Attoparsec (maybeResult)
 
-s1 =  "1330757555.727  43378 144.32.71.165 TCP_MISS/200 418 GET http://0-if-w.channel.facebook.com/pull?channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041 - DIRECT/69.171.227.51 text/plain"
-s2 =  "1330757555.720   9749 144.32.6.171 TCP_MISS/000 0 GET https://192.168.118.1:6789/ - DIRECT/192.168.118.1 -"
-s3 =  "1330757556.484 299937 144.32.45.222 TCP_MISS/200 2548 CONNECT www.facebook.com:443 - DIRECT/66.220.153.19 -"
-s4 =  "1330757555.720   9749 144.32.6.171 TCP_MISS/000 0 GET https://192.168.118.1/ - DIRECT/192.168.118.1 -"
-s5 =  "1330757556.566    141 144.32.12.76 TCP_MISS/200 3127 GET http://ib.adnxs.com/ab?enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z61jvTu7-4yC0v1FPAAAAAKdLAABlAQAAbAEAAAIAAAD4XhQAPWQAAAEAAABVU0QAVVNEAKAAWALoYAcCUxYBAgUCAQQAAAAAFyVcLgAAAAA.&tt_code=vert-8&udj=uf%28%27a%27%2C+932%2C+1330757556%29%3Buf%28%27c%27%2C+259929%2C+1330757556%29%3Buf%28%27r%27%2C+1335032%2C+1330757556%29%3Bppv%2814414%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3Bppv%2828529%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3B&cnd=!pCQBYAjZ7g8Q-L1RGAAgvcgBMAA46MEBQABI7AJQp5cBWABggwFoAHAAeACAAbwliAGeBZABAZgBAaABAagBA7ABALkBUAmufAwIqD_BAVAJrnwMCKg_yQHDB5EStQbEP9kB4C2QoPgx5D_gAZJS&ccd=!swVrMAjZ7g8Q-L1RGL3IASAA&referrer=http://www.facebook.com&media_subtypes=1&dlo=1&pp=AAABNddU1_S7iKd4KE5B0AdSOzQySMA7C1ODPw&pubclick=http%3A%2F%2Fox-d.liftdna.com%2Fw%2F1.0%2Frc%3Fts%3D0c2lkPTk1Mzh8YXVpZD05OTI2OXxtcj0yMHxtdD1INHNJQUFBQUFBQUFBRjNNelFxQ1FCU0c0WHM1YTRVWnpfeTZibDJRUlVzWko0UEFhcGhVQlBIZU8yTWJpMW05SDgtY0dWNFRRdG5Ib2MzQURmWDlDaVdnTkVLZzA3azEzdWVDSzVzM3JSSjVvd3dyR3BUT2FBWXI3NkhraUV4TExhVmFsX2ltQTlYeFZGOE9lektCeWtvMGlkTnBMdWhsNEI5cFI4czFKdE5SOElJcG1jcEhxc0l5a2NMVkRmMmFZWFRkMEVLcDJKSTJfeVJ5cm5ZckNQRWZURnN3MVhIY2dDS0JzQVhoRjRndnVIV2JEZG15ZkFBY3Q2TDBLUUVBQUF8bXVpPTgwODYxYmEwLTg1ZWMtNDJlMy1hMjIyLWY1MTk5YWUxMmU1MXxhaWQ9MjQwMTF8bT0xfHB1Yj0xMjI0N3xsaWQ9MjAwMjV8YWk9NDA4YzlkZjgtODVmZS02ODkzLTQ5MzgtY2NiZmQyMDQ2MDFlfHQ9NHxtYz1VU0R8cmlkPTM1ODQ0M2E3LTk4Y2MtNDE2OS1iZTY0LWI2ODAyYjM1YTg3MHxibT18cGM9VVNEfHA9NjB8YWM9VVNEfHBtPVBSSUNJTkcuQ1BNfHJ0PTEzMzA3NTc1NTZ8cHI9NDB8YWR2PTEwMzk%26r%3D - DIRECT/68.67.179.247 text/javascript"
-s6 =  "1340204564.448      0 144.32.46.11 NONE/400 3194 NONE error:request-too-large - NONE/- text/html"
-s7 =  "1340213512.257      0 144.32.34.117 NONE/400 3423 GET http://[fe80::215:99ff:fe4a:3d45%2513]/SmartPanel/sm.xml - NONE/- text/html"
-s8 =  "1340213512.257      0 144.32.34.117 NONE/400 3423 GET http://[fe80::215:99ff:fe4a:3d45%2513]:456/SmartPanel/sm.xml?seq=2:3 - NONE/- text/html"
-s9 =  "1340170913.689    303 144.32.76.207 TCP_MISS/200 1908 GET http://weather.service.msn.com/data.aspx?src=Windows7&wealocations=wc:UKXX0085&weadegreetype=F&culture=en-US - DIRECT/65.55.17.76 text/xml"
-s10 = "1340170197.000  24773 144.32.206.236 TCP_MISS/503 3337 POST http://188.221.54.136/dwr/call/plaincall/nowPlayingService.getNowPlayingForCurrentPlayer.dwr - DIRECT/188.221.54.136 text/html"
+s1 =  "1330757555.727  43378 192.168.71.165 TCP_MISS/200 418 GET http://0-if-w.channel.facebook.com/pull?channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041 - DIRECT/69.171.227.51 text/plain"
+s2 =  "1330757555.720   9749 192.168.6.171 TCP_MISS/000 0 GET https://192.168.118.1:6789/ - DIRECT/192.168.118.1 -"
+s3 =  "1330757556.484 299937 192.168.45.222 TCP_MISS/200 2548 CONNECT www.facebook.com:443 - DIRECT/66.220.153.19 -"
+s4 =  "1330757555.720   9749 192.168.6.171 TCP_MISS/000 0 GET https://192.168.118.1/ - DIRECT/192.168.118.1 -"
+s5 =  "1330757556.566    141 192.168.12.76 TCP_MISS/200 3127 GET http://ib.adnxs.com/ab?enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z61jvTu7-4yC0v1FPAAAAAKdLAABlAQAAbAEAAAIAAAD4XhQAPWQAAAEAAABVU0QAVVNEAKAAWALoYAcCUxYBAgUCAQQAAAAAFyVcLgAAAAA.&tt_code=vert-8&udj=uf%28%27a%27%2C+932%2C+1330757556%29%3Buf%28%27c%27%2C+259929%2C+1330757556%29%3Buf%28%27r%27%2C+1335032%2C+1330757556%29%3Bppv%2814414%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3Bppv%2828529%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3B&cnd=!pCQBYAjZ7g8Q-L1RGAAgvcgBMAA46MEBQABI7AJQp5cBWABggwFoAHAAeACAAbwliAGeBZABAZgBAaABAagBA7ABALkBUAmufAwIqD_BAVAJrnwMCKg_yQHDB5EStQbEP9kB4C2QoPgx5D_gAZJS&ccd=!swVrMAjZ7g8Q-L1RGL3IASAA&referrer=http://www.facebook.com&media_subtypes=1&dlo=1&pp=AAABNddU1_S7iKd4KE5B0AdSOzQySMA7C1ODPw&pubclick=http%3A%2F%2Fox-d.liftdna.com%2Fw%2F1.0%2Frc%3Fts%3D0c2lkPTk1Mzh8YXVpZD05OTI2OXxtcj0yMHxtdD1INHNJQUFBQUFBQUFBRjNNelFxQ1FCU0c0WHM1YTRVWnpfeTZibDJRUlVzWko0UEFhcGhVQlBIZU8yTWJpMW05SDgtY0dWNFRRdG5Ib2MzQURmWDlDaVdnTkVLZzA3azEzdWVDSzVzM3JSSjVvd3dyR3BUT2FBWXI3NkhraUV4TExhVmFsX2ltQTlYeFZGOE9lektCeWtvMGlkTnBMdWhsNEI5cFI4czFKdE5SOElJcG1jcEhxc0l5a2NMVkRmMmFZWFRkMEVLcDJKSTJfeVJ5cm5ZckNQRWZURnN3MVhIY2dDS0JzQVhoRjRndnVIV2JEZG15ZkFBY3Q2TDBLUUVBQUF8bXVpPTgwODYxYmEwLTg1ZWMtNDJlMy1hMjIyLWY1MTk5YWUxMmU1MXxhaWQ9MjQwMTF8bT0xfHB1Yj0xMjI0N3xsaWQ9MjAwMjV8YWk9NDA4YzlkZjgtODVmZS02ODkzLTQ5MzgtY2NiZmQyMDQ2MDFlfHQ9NHxtYz1VU0R8cmlkPTM1ODQ0M2E3LTk4Y2MtNDE2OS1iZTY0LWI2ODAyYjM1YTg3MHxibT18cGM9VVNEfHA9NjB8YWM9VVNEfHBtPVBSSUNJTkcuQ1BNfHJ0PTEzMzA3NTc1NTZ8cHI9NDB8YWR2PTEwMzk%26r%3D - DIRECT/68.67.179.247 text/javascript"
+s6 =  "1340204564.448      0 192.168.46.11 NONE/400 3194 NONE error:request-too-large - NONE/- text/html"
+s7 =  "1340213512.257      0 192.168.34.117 NONE/400 3423 GET http://[fe80::215:99ff:fe4a:3d45%2513]/SmartPanel/sm.xml - NONE/- text/html"
+s8 =  "1340213512.257      0 192.168.34.117 NONE/400 3423 GET http://[fe80::215:99ff:fe4a:3d45%2513]:456/SmartPanel/sm.xml?seq=2:3 - NONE/- text/html"
+s9 =  "1340170913.689    303 192.168.76.207 TCP_MISS/200 1908 GET http://weather.service.msn.com/data.aspx?src=Windows7&wealocations=wc:UKXX0085&weadegreetype=F&culture=en-US - DIRECT/65.55.17.76 text/xml"
+s10 = "1340170197.000  24773 192.168.206.236 TCP_MISS/503 3337 POST http://188.221.54.136/dwr/call/plaincall/nowPlayingService.getNowPlayingForCurrentPlayer.dwr - DIRECT/188.221.54.136 text/html"
 paramsS1 = "channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041"    
 paramsS5 = "enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z61jvTu7-4yC0v1FPAAAAAKdLAABlAQAAbAEAAAIAAAD4XhQAPWQAAAEAAABVU0QAVVNEAKAAWALoYAcCUxYBAgUCAQQAAAAAFyVcLgAAAAA.&tt_code=vert-8&udj=uf%28%27a%27%2C+932%2C+1330757556%29%3Buf%28%27c%27%2C+259929%2C+1330757556%29%3Buf%28%27r%27%2C+1335032%2C+1330757556%29%3Bppv%2814414%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3Bppv%2828529%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3B&cnd=!pCQBYAjZ7g8Q-L1RGAAgvcgBMAA46MEBQABI7AJQp5cBWABggwFoAHAAeACAAbwliAGeBZABAZgBAaABAagBA7ABALkBUAmufAwIqD_BAVAJrnwMCKg_yQHDB5EStQbEP9kB4C2QoPgx5D_gAZJS&ccd=!swVrMAjZ7g8Q-L1RGL3IASAA&referrer=http://www.facebook.com&media_subtypes=1&dlo=1&pp=AAABNddU1_S7iKd4KE5B0AdSOzQySMA7C1ODPw&pubclick=http%3A%2F%2Fox-d.liftdna.com%2Fw%2F1.0%2Frc%3Fts%3D0c2lkPTk1Mzh8YXVpZD05OTI2OXxtcj0yMHxtdD1INHNJQUFBQUFBQUFBRjNNelFxQ1FCU0c0WHM1YTRVWnpfeTZibDJRUlVzWko0UEFhcGhVQlBIZU8yTWJpMW05SDgtY0dWNFRRdG5Ib2MzQURmWDlDaVdnTkVLZzA3azEzdWVDSzVzM3JSSjVvd3dyR3BUT2FBWXI3NkhraUV4TExhVmFsX2ltQTlYeFZGOE9lektCeWtvMGlkTnBMdWhsNEI5cFI4czFKdE5SOElJcG1jcEhxc0l5a2NMVkRmMmFZWFRkMEVLcDJKSTJfeVJ5cm5ZckNQRWZURnN3MVhIY2dDS0JzQVhoRjRndnVIV2JEZG15ZkFBY3Q2TDBLUUVBQUF8bXVpPTgwODYxYmEwLTg1ZWMtNDJlMy1hMjIyLWY1MTk5YWUxMmU1MXxhaWQ9MjQwMTF8bT0xfHB1Yj0xMjI0N3xsaWQ9MjAwMjV8YWk9NDA4YzlkZjgtODVmZS02ODkzLTQ5MzgtY2NiZmQyMDQ2MDFlfHQ9NHxtYz1VU0R8cmlkPTM1ODQ0M2E3LTk4Y2MtNDE2OS1iZTY0LWI2ODAyYjM1YTg3MHxibT18cGM9VVNEfHA9NjB8YWM9VVNEfHBtPVBSSUNJTkcuQ1BNfHJ0PTEzMzA3NTc1NTZ8cHI9NDB8YWR2PTEwMzk%26r%3D"
 paramsS9 = "src=Windows7&wealocations=wc:UKXX0085&weadegreetype=F&culture=en-US"
@@ -31,7 +30,7 @@ testFail s = TestCase $ assertEqual "fail" Nothing (head $ parseLines s::Maybe S
 
 testList = [testFn "elapsed s1"      43378                         elapsed           s1
             ,testFn "timestamp s1"   1330757555                    ts                s1
-            ,testFn "clientIP s1"     "144.32.71.165"              clientIP          s1
+            ,testFn "clientIP s1"    "192.168.71.165"              clientIP          s1
             ,testFn "action s1"      "TCP_MISS"                    action            s1
             ,testFn "code s1"        200                           resultCode        s1
             ,testFn "size s1"        418                           size              s1
@@ -45,12 +44,12 @@ testList = [testFn "elapsed s1"      43378                         elapsed      
             ,testFn "params s1"      paramsS1                      (uriParams . uri) s1
             ,testFn "port s1"        80                            (port . uri)      s1
             ,testFn "scheme s1"      HTTP                          (scheme . uri)    s1
-            ,testFn "clientIP s2"    "144.32.6.171"                clientIP          s2
+            ,testFn "clientIP s2"    "192.168.6.171"               clientIP          s2
             ,testFn "vhost s2"       "192.168.118.1"               (vhost . uri)     s2
             ,testFn "path s2"        "/"                           (uriPath . uri)   s2
             ,testFn "port s2"        6789                          (port . uri)      s2
             ,testFn "scheme s2"      HTTPS                         (scheme . uri)    s2
-            ,testFn "clientIP s3"    "144.32.45.222"               clientIP          s3
+            ,testFn "clientIP s3"    "192.168.45.222"              clientIP          s3
             ,testFn "vhost s3"       "www.facebook.com"            (vhost . uri)     s3
             ,testFn "path s3"        "/"                           (uriPath . uri)   s3
             ,testFn "params s3"      ""                            (uriParams. uri)  s3 
