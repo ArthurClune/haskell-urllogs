@@ -8,4 +8,4 @@ http://hackage.haskell.org/package/zlib-conduit-0.2.0.1
 
 Write quickcheck tests 
 
-
+cabal configure --enable-library-profiling --ghc-option=-auto-all --enable-executable-profiling  

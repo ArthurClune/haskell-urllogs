@@ -16,6 +16,13 @@ s7 =  "1340213512.257      0 192.168.34.117 NONE/400 3423 GET http://[fe80::215:
 s8 =  "1340213512.257      0 192.168.34.117 NONE/400 3423 GET http://[fe80::215:99ff:fe4a:3d45%2513]:456/SmartPanel/sm.xml?seq=2:3 - NONE/- text/html"
 s9 =  "1340170913.689    303 192.168.76.207 TCP_MISS/200 1908 GET http://weather.service.msn.com/data.aspx?src=Windows7&wealocations=wc:UKXX0085&weadegreetype=F&culture=en-US - DIRECT/65.55.17.76 text/xml"
 s10 = "1340170197.000  24773 192.168.206.236 TCP_MISS/503 3337 POST http://188.221.54.136/dwr/call/plaincall/nowPlayingService.getNowPlayingForCurrentPlayer.dwr - DIRECT/188.221.54.136 text/html"
+s11 = "1340170709.466    962 192.168.55.139 TCP_MISS/200 91772 GET http://sophos.trinity.edu/staff/CIDs/S000/ESCOSX/cidsync.upd - DIRECT/131.194.151.84 All"
+s12 = "1340171409.198      8 192.168.29.3 TCP_MISS/501 578 OPTIONS http://go.divx.com/ - DIRECT/2.22.228.43 text/html"
+s13 = "1340176142.811    304 192.168.28.253 TCP_MISS/301 624 PROPFIND http://www.salixfinance.co.uk/downloads - DIRECT/64.90.56.89 text/html"
+-- yes, this next one has really been seen in a log file!
+s14 = "1340179287.583    426 192.168.227.120 TCP_MISS/200 23846 GET http://www.barbadosrc.org/json_slide_list.php?directory=slides - DIRECT/209.203.226.167 {$content_type}"
+s15 = "1340181298.947    320 192.168.2.123 TCP_MISS/200 857 POST http://check.sanasecurity.com - DIRECT/204.193.144.31 text/html"
+
 paramsS1 = "channel=p_100003547657244&seq=6&clientid=71560450&cb=f7ry&idle=46041"    
 paramsS5 = "enc=6PS8GwsKsz9q3PaYoyKxPwAAAAAAAOA_atz2mKMisT_o9LwbCwqzP7U-53Z1K14z61jvTu7-4yC0v1FPAAAAAKdLAABlAQAAbAEAAAIAAAD4XhQAPWQAAAEAAABVU0QAVVNEAKAAWALoYAcCUxYBAgUCAQQAAAAAFyVcLgAAAAA.&tt_code=vert-8&udj=uf%28%27a%27%2C+932%2C+1330757556%29%3Buf%28%27c%27%2C+259929%2C+1330757556%29%3Buf%28%27r%27%2C+1335032%2C+1330757556%29%3Bppv%2814414%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3Bppv%2828529%2C+%273701443727251160757%27%2C+1330757556%2C+1333349556%2C+259929%2C+25661%2C+0%2C+0%2C+2592000%29%3B&cnd=!pCQBYAjZ7g8Q-L1RGAAgvcgBMAA46MEBQABI7AJQp5cBWABggwFoAHAAeACAAbwliAGeBZABAZgBAaABAagBA7ABALkBUAmufAwIqD_BAVAJrnwMCKg_yQHDB5EStQbEP9kB4C2QoPgx5D_gAZJS&ccd=!swVrMAjZ7g8Q-L1RGL3IASAA&referrer=http://www.facebook.com&media_subtypes=1&dlo=1&pp=AAABNddU1_S7iKd4KE5B0AdSOzQySMA7C1ODPw&pubclick=http%3A%2F%2Fox-d.liftdna.com%2Fw%2F1.0%2Frc%3Fts%3D0c2lkPTk1Mzh8YXVpZD05OTI2OXxtcj0yMHxtdD1INHNJQUFBQUFBQUFBRjNNelFxQ1FCU0c0WHM1YTRVWnpfeTZibDJRUlVzWko0UEFhcGhVQlBIZU8yTWJpMW05SDgtY0dWNFRRdG5Ib2MzQURmWDlDaVdnTkVLZzA3azEzdWVDSzVzM3JSSjVvd3dyR3BUT2FBWXI3NkhraUV4TExhVmFsX2ltQTlYeFZGOE9lektCeWtvMGlkTnBMdWhsNEI5cFI4czFKdE5SOElJcG1jcEhxc0l5a2NMVkRmMmFZWFRkMEVLcDJKSTJfeVJ5cm5ZckNQRWZURnN3MVhIY2dDS0JzQVhoRjRndnVIV2JEZG15ZkFBY3Q2TDBLUUVBQUF8bXVpPTgwODYxYmEwLTg1ZWMtNDJlMy1hMjIyLWY1MTk5YWUxMmU1MXxhaWQ9MjQwMTF8bT0xfHB1Yj0xMjI0N3xsaWQ9MjAwMjV8YWk9NDA4YzlkZjgtODVmZS02ODkzLTQ5MzgtY2NiZmQyMDQ2MDFlfHQ9NHxtYz1VU0R8cmlkPTM1ODQ0M2E3LTk4Y2MtNDE2OS1iZTY0LWI2ODAyYjM1YTg3MHxibT18cGM9VVNEfHA9NjB8YWM9VVNEfHBtPVBSSUNJTkcuQ1BNfHJ0PTEzMzA3NTc1NTZ8cHI9NDB8YWR2PTEwMzk%26r%3D"
 paramsS9 = "src=Windows7&wealocations=wc:UKXX0085&weadegreetype=F&culture=en-US"
@@ -69,11 +76,16 @@ testList = [testFn "elapsed s1"      43378                         elapsed      
             ,testFn "path s7"        "/SmartPanel/sm.xml"          (uriPath . uri)   s7
             ,testFn "port s8"        456                           (port . uri)      s8
             ,testFn "path s8"        "/SmartPanel/sm.xml"          (uriPath . uri)   s8
-            ,testFn "params s8"      "seq=2:3"                     (uriParams .uri)  s8
-            ,testFn "vhost s9"       "weather.service.msn.com"     (vhost .uri)      s9
+            ,testFn "params s8"      "seq=2:3"                     (uriParams . uri) s8
+            ,testFn "vhost s9"       "weather.service.msn.com"     (vhost . uri)     s9
             ,testFn "path s9"        "/data.aspx"                  (uriPath . uri)   s9
             ,testFn "params s9"      paramsS9                      (uriParams . uri) s9
             ,testFn "method s10"     POST                          method            s10
+            ,testFn "mimetype s11"   "All"                         mimeType          s11
+            ,testFn "method s12"     OPTIONS                       method            s12
+            ,testFn "method s13"     PROPFIND                      method            s13
+            ,testFn "mimetype s14"   "{$content_type}"             mimeType          s14
+            ,testFn "vhost s15"      "check.sanasecurity.com"      (vhost . uri)     s15
             ,testFail x
            ]
 

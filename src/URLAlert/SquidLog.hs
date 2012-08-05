@@ -26,8 +26,8 @@ import URLAlert.Utils (toInt)
 import URLAlert.Types
 
 -- | Store the type of HTTP request made
-data Method = GET | HEAD| POST | PUT |
-              CONNECT | ICP_QUERY | MNONE      
+data Method = GET | HEAD| POST | PUT | OPTIONS |
+              CONNECT | ICP_QUERY | MNONE | PROPFIND     
               deriving (Show, Eq)
 
 -- | Store data about an access to a web resource from a squid log file
@@ -71,7 +71,7 @@ slashPair = (,) <$> (space *> takeWhile1 (/= '/') <*. "/") <*> takeWhile1 (/= ' 
 {-# INLINE slashPair #-}
 
 endValue::Parser S.ByteString
-endValue = takeWhile1 (inClass "-a-z/")
+endValue = takeWhile (/= ' ')
 {-# INLINE endValue #-}
 
 -- parse a vhost.
@@ -84,8 +84,10 @@ parseVHost::Parser (S.ByteString, S.ByteString)
 parseVHost = do
   (lvhost, lport) <-    (,) <$> ipv6host <*>  (satisfy (== ':') *> takeWhile1 (/= '/'))
                     <|> (,) <$> ipv6host <*>  pure "__not__"
-                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":") <*> takeWhile1 (/= '/')
-                    <|> (,) <$> takeWhile1 (/= '/') <*> pure "__not__"
+                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":") 
+                              <*> takeWhile1 (\x -> x /= '/' && x /= ' ')
+                    <|> (,) <$> takeWhile1 (\x -> x /= '/' && x /= ' ') 
+                              <*> pure "__not__"
   return (lvhost, lport)
 {-# INLINE parseVHost #-}
 
@@ -112,7 +114,7 @@ ipv6host = satisfy (== '[') *> takeWhile1 (/= ']') <* satisfy (== ']')
 -- CONNECT type lines
 urlValue2::Parser URI
 urlValue2 = do
-    (lvhost, lport) <- (,) <$> takeTill (== ':') <* char ':' <*> takeWhile1 (isDigit)
+    (lvhost, lport) <- (,) <$> takeTill (== ':') <* char ':' <*> takeWhile1 isDigit
     return $! URI lvhost "/" "" (toInt lport) HTTPS
 {-# INLINE urlValue2 #-}
 
@@ -138,7 +140,9 @@ squidLogLine = do
                              string "HEAD"      *> pure HEAD <|>
                              string "CONNECT"   *> pure CONNECT   <|>
                              string "ICP_QUERY" *> pure ICP_QUERY <|>
-                             string "NONE"      *> pure MNONE
+                             string "NONE"      *> pure MNONE <|>
+                             string "OPTIONS"   *> pure OPTIONS <|>
+                             string "PROPFIND"  *> pure PROPFIND 
                             )
     luri       <- space *> urlValue1 <|> space *> urlValue2 <|> space *> urlValue3
     lident     <- space *> plainValue

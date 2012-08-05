@@ -22,8 +22,9 @@ Executable urllogs
   Build-depends: base, zlib, attoparsec, bytestring, text, safe,
                   unordered-containers
   ghc-options: -Wall
+  -- cargo cult selection of optimisation flags :)
   if flag(optimize)
-    ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr
+    ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr 
 
 Executable run-ipoque-tests
   Main-is: IpoqueLogTests.hs
@@ -41,5 +42,6 @@ library
     Other-modules:   URLAlert.Utils
     Build-depends:   base, bytestring, attoparsec
     ghc-options: -Wall
+    -- cargo cult selection of optimisation flags :)
     if flag(optimize)
-      ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr
+      ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr 
