@@ -1,0 +1,47 @@
+Name:                urllogs
+Version:             0.0.1
+Synopsis:            Parse squid and ipoque logfiles
+-- Description:         
+License:             GPL-3
+License-file:        LICENSE
+Author:              Arthur Clune
+Maintainer:          arthur@clune.org
+Copyright:           Arthur Clune 2012
+Category:            Testing
+Build-type:          Custom
+-- Extra-source-files:  
+Cabal-version:       >=1.2
+
+flag optimize
+  description: Enable optimizations
+  default:     True
+
+Executable urllogs
+  Main-is: urllogs.hs
+  hs-source-dirs: src
+  Build-depends: base, zlib, attoparsec, bytestring, text, safe,
+                  unordered-containers
+  ghc-options: -Wall
+  -- cargo cult selection of optimisation flags :)
+  if flag(optimize)
+    ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
+
+Executable run-ipoque-tests
+  Main-is: IpoqueLogTests.hs
+  hs-source-dirs: tests, src
+  Build-depends: base, zlib, attoparsec, bytestring, HUnit
+
+Executable run-squid-tests
+  Main-is: SquidLogTests.hs
+  hs-source-dirs: tests, src
+  Build-depends: base, zlib, attoparsec, bytestring, HUnit, text
+
+library
+    Exposed-Modules: URLAlert.IpoqueLog, URLAlert.SquidLog, URLAlert.Types
+    hs-source-dirs: src
+    Other-modules:   URLAlert.Utils
+    Build-depends:   base, bytestring, attoparsec
+    ghc-options: -Wall
+    -- cargo cult selection of optimisation flags :)
+    if flag(optimize)
+        ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
