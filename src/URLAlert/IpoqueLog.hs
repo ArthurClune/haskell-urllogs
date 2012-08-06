@@ -78,7 +78,7 @@ ipoqueLogLine = do
     ldate           <- dateValue   
     lvhost          <- bar *> quotedValue 
     (lpath, lparams)<- bar *> quote *> urlValue
-    return $! IpoqueLogLine ldate lsrc (toInt lsport) ldst
+    return $ IpoqueLogLine ldate lsrc (toInt lsport) ldst
                 (URI lvhost lpath lparams (toInt ldport) HTTP)
 
 

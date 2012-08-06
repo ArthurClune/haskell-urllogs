@@ -11,11 +11,12 @@ module URLAlert.Types (
 ) where
 
 
+import Codec.Compression.GZip as GZip
+import Data.Attoparsec.Char8
 import qualified Data.ByteString.Char8 as S
 import qualified Data.ByteString.Lazy.Char8 as SL
-import Data.Attoparsec.Char8
+
 import URLAlert.Utils (toStrict)
-import Codec.Compression.GZip as GZip
 
 -- | The scheme used to access the resource
 data Scheme = HTTP | HTTPS | NONE deriving (Show, Eq) 

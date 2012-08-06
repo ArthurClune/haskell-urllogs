@@ -1,11 +1,9 @@
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, BangPatterns #-}
 
---import Control.Monad
 import qualified Data.ByteString.Char8 as S
 import qualified Data.HashMap.Strict as M
 import Data.List (foldl', sortBy)
-import Data.Maybe (fromJust)
 import System.Environment (getArgs)
 import Safe (abort)
 import Text.Printf (printf)
@@ -32,7 +30,7 @@ parseArgs = do
 topN :: (a -> S.ByteString) -> (a -> Bool) -> [Maybe a] -> [(S.ByteString, Int)]
 topN field cond = M.toList . foldl' count M.empty
     where
-        count acc l = case l of
+        count !acc l = case l of
             Just x -> if cond x
                       then M.insertWith (+) (S.copy (field x)) 1 acc
                       else acc
@@ -54,7 +52,7 @@ main = do
     files <- parseArgs
     logLines <- mapM SquidLog.parseGZipLog files::IO [[Maybe SquidLog.SquidLogLine]]
     let vhosts = analyseFiles (topN (vhost . SquidLog.uri) (\x -> SquidLog.mimeType x == "text/html"))
-                    (concatMap (topNList 200))
+                    (concatMap $ topNList 200)
                     logLines
     mapM_ putStrLn . zipWith pretty [1..] $ topNList 100 vhosts
 

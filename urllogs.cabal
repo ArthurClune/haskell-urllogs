@@ -24,7 +24,7 @@ Executable urllogs
   ghc-options: -Wall
   -- cargo cult selection of optimisation flags :)
   if flag(optimize)
-    ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr 
+    ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
 
 Executable run-ipoque-tests
   Main-is: IpoqueLogTests.hs
@@ -44,4 +44,4 @@ library
     ghc-options: -Wall
     -- cargo cult selection of optimisation flags :)
     if flag(optimize)
-      ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr 
+        ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts

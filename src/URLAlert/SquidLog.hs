@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, BangPatterns #-}
 
 module URLAlert.SquidLog
     (
@@ -19,11 +19,13 @@ module URLAlert.SquidLog
 --import Debug.Trace (trace)
 
 import Prelude hiding (takeWhile, take)
+
 import Control.Applicative
-import qualified Data.ByteString.Char8 as S
 import Data.Attoparsec.Char8
-import URLAlert.Utils (toInt)
+import qualified Data.ByteString.Char8 as S
+
 import URLAlert.Types
+import URLAlert.Utils (toInt)
 
 -- | Store the type of HTTP request made
 data Method = GET | HEAD| POST | PUT | OPTIONS |
@@ -101,10 +103,10 @@ urlValue1 = do
                              <|> (,) <$> takeTill (== ' ') <*> pure ""
         case lport of
             "__not__" -> case lscheme of
-                HTTP  -> return $! URI lvhost lpath lparams 80 lscheme
-                HTTPS -> return $! URI lvhost lpath lparams 443 lscheme
+                HTTP  -> return $ URI lvhost lpath lparams 80 lscheme
+                HTTPS -> return $ URI lvhost lpath lparams 443 lscheme
                 _     -> error "Parse failed in urlValue1"
-            _ -> return $! URI lvhost lpath lparams (toInt lport) lscheme
+            _ -> return $ URI lvhost lpath lparams (toInt lport) lscheme
 {-# INLINE urlValue1 #-}
 
 ipv6host::Parser S.ByteString
@@ -115,7 +117,7 @@ ipv6host = satisfy (== '[') *> takeWhile1 (/= ']') <* satisfy (== ']')
 urlValue2::Parser URI
 urlValue2 = do
     (lvhost, lport) <- (,) <$> takeTill (== ':') <* char ':' <*> takeWhile1 isDigit
-    return $! URI lvhost "/" "" (toInt lport) HTTPS
+    return $ URI lvhost "/" "" (toInt lport) HTTPS
 {-# INLINE urlValue2 #-}
 
 -- NONE type lines
@@ -123,7 +125,7 @@ urlValue2 = do
 urlValue3::Parser URI
 urlValue3 = do
   text <- takeTill (== ' ')
-  return $! URI text "" "" 0 NONE
+  return $ URI text "" "" 0 NONE
 
 -- | Parser for a single line from a squid logfile
 squidLogLine::Parser SquidLogLine
@@ -148,7 +150,7 @@ squidLogLine = do
     lident     <- space *> plainValue
     (lhierarchy, lremip) <- slashPair
     lmimeType  <- space *> endValue
-    return $! SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
+    return $ SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
                     laction (toInt lresult) (toInt lsize) lmethod 
                     luri lident lhierarchy lremip lmimeType
 
