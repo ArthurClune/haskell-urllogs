@@ -8,40 +8,41 @@ Author:              Arthur Clune
 Maintainer:          arthur@clune.org
 Copyright:           Arthur Clune 2012
 Category:            Testing
-Build-type:          Custom
+Build-type:          Simple
 -- Extra-source-files:  
-Cabal-version:       >=1.2
+Cabal-version:       >=1.10
 
 flag optimize
   description: Enable optimizations
   default:     True
 
+Library
+    Exposed-Modules: URLAlert.IpoqueLog, URLAlert.SquidLog, URLAlert.Types
+    hs-source-dirs: lib
+    default-language:    Haskell2010
+    Other-modules:   URLAlert.Utils
+    Build-depends:   base, bytestring, attoparsec, zlib
+    ghc-options: -Wall
+    if flag(optimize)
+        ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
+
 Executable urllogs
   Main-is: urllogs.hs
   hs-source-dirs: src
-  Build-depends: base, zlib, attoparsec, bytestring, text, safe,
-                  unordered-containers
+  default-language:    Haskell2010
+  Build-depends: base, bytestring, safe, unordered-containers, urllogs
   ghc-options: -Wall
-  -- cargo cult selection of optimisation flags :)
   if flag(optimize)
     ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
 
 Executable run-ipoque-tests
   Main-is: IpoqueLogTests.hs
-  hs-source-dirs: tests, src
-  Build-depends: base, zlib, attoparsec, bytestring, HUnit
+  default-language:    Haskell2010
+  hs-source-dirs: tests
+  Build-depends: base, bytestring, HUnit, attoparsec, urllogs
 
 Executable run-squid-tests
   Main-is: SquidLogTests.hs
-  hs-source-dirs: tests, src
-  Build-depends: base, zlib, attoparsec, bytestring, HUnit, text
-
-library
-    Exposed-Modules: URLAlert.IpoqueLog, URLAlert.SquidLog, URLAlert.Types
-    hs-source-dirs: src
-    Other-modules:   URLAlert.Utils
-    Build-depends:   base, bytestring, attoparsec
-    ghc-options: -Wall
-    -- cargo cult selection of optimisation flags :)
-    if flag(optimize)
-        ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
+  default-language:    Haskell2010
+  hs-source-dirs: tests
+  Build-depends: base, bytestring, HUnit, attoparsec, urllogs
