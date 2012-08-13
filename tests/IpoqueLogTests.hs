@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.Maybe
-import Data.ByteString.Lazy.Char8 (pack, append)
+import Data.ByteString.Lazy.Char8 (append)
 import Test.HUnit
 import URLAlert.Types
 import URLAlert.IpoqueLog 

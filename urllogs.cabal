@@ -19,12 +19,12 @@ flag optimize
 Library
     Exposed-Modules: URLAlert.IpoqueLog, URLAlert.SquidLog, URLAlert.Types
     hs-source-dirs: lib
-    default-language:    Haskell2010
+    default-language:    Haskell98
     Other-modules:   URLAlert.Utils
     Build-depends:   base, bytestring, attoparsec, zlib
     ghc-options: -Wall
     if flag(optimize)
-        ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
+        ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr 
 
 Executable urllogs
   Main-is: urllogs.hs
@@ -39,10 +39,10 @@ Executable run-ipoque-tests
   Main-is: IpoqueLogTests.hs
   default-language:    Haskell2010
   hs-source-dirs: tests
-  Build-depends: base, bytestring, HUnit, attoparsec, urllogs
+  Build-depends: base, bytestring, HUnit, urllogs
 
 Executable run-squid-tests
   Main-is: SquidLogTests.hs
   default-language:    Haskell2010
   hs-source-dirs: tests
-  Build-depends: base, bytestring, HUnit, attoparsec, urllogs
+  Build-depends: base, HUnit, urllogs
