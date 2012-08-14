@@ -1,11 +1,11 @@
 
-{-# LANGUAGE OverloadedStrings, BangPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import qualified Data.ByteString.Char8 as S
---import qualified Data.Conduit.List as DCL
---import Data.Conduit
+import qualified Data.Conduit.List as DCL
+import Data.Conduit
 import qualified Data.HashMap.Strict as M
-import Data.List (foldl', sortBy)
+import Data.List (sortBy)
 import System.Environment (getArgs)
 import Safe (abort)
 import Text.Printf (printf)
@@ -21,19 +21,8 @@ parseArgs::IO String
 parseArgs = do
     args <- getArgs
     if length args == 1
-        then return (args !! 0)
+        then return (head args)
         else abort "Usage: urllogs.hs [file1]"
-
--- | TopN 
--- Return a list of the lines matching cond, with key given by the field "field" 
-matchLines :: (a -> S.ByteString) -> (a -> Bool) -> [Maybe a] -> [(S.ByteString, Int)]
-matchLines field cond = M.toList . foldl' count M.empty
-    where
-        count !acc l = case l of
-            Just x -> if cond x
-                      then M.insertWith (+) (S.copy (field x)) 1 acc
-                      else acc
-            Nothing -> acc
 
 -- Helper that sorts a list based on the second value 
 -- and returns the top N values
@@ -46,16 +35,14 @@ topNList n l = take n $ sortBy mostPopular l
 pretty :: Show a => Int -> (a, Int) -> String
 pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 
---step :: Int -> SquidLog.SquidLogLine -> Int
---step acc l = (SquidLog.size l) + acc
-
 main::IO()
 main = do      
     file <- parseArgs
     logLines <- SquidLog.parseGZipLog file::IO [Maybe SquidLog.SquidLogLine]
-    let vhosts = matchLines (vhost . SquidLog.uri) (\x -> SquidLog.mimeType x == "text/html")
-                    logLines
-    mapM_ putStrLn . zipWith pretty [1..] $ topNList 100 vhosts
-    --print $ foldl (+) 0 $ map bytes logLines
-    --y <- DCL.sourceList logLines $= DCL.catMaybes $$ DCL.fold step 0
-    --print y
+    y <- DCL.sourceList logLines $= DCL.catMaybes 
+                                 $= DCL.filter (\x -> SquidLog.mimeType x == "text/html")
+                                 $$ DCL.fold count M.empty
+    mapM_ putStrLn . zipWith pretty [1..] $ topNList 100 (M.toList y)
+  where 
+    count acc l = M.insertWith (+) (S.copy (vhost . SquidLog.uri $ l)) 1 acc
+

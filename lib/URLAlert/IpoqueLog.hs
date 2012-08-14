@@ -39,6 +39,9 @@ data IpoqueLogLine = IpoqueLogLine {
 instance Ord IpoqueLogLine where
   l1 `compare` l2 = date l1 `compare` date l2
 
+instance LogFileParser IpoqueLogLine where
+  parseLine = ipoqueLogLine
+
 quote, bar, colon :: Parser Char
 quote  = satisfy (== '\"')
 bar    = satisfy (== '|')
@@ -79,8 +82,3 @@ ipoqueLogLine = do
     (lpath, lparams)<- bar *> quote *> urlValue
     return $ IpoqueLogLine ldate lsrc (toInt lsport) ldst
                 (URI lvhost lpath lparams (toInt ldport) HTTP)
-
-
-instance LogFileParser IpoqueLogLine where
-  parseLine = ipoqueLogLine
-

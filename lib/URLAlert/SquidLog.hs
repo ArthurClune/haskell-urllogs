@@ -153,7 +153,6 @@ squidLogLine = do
     lident     <- space *> plainValue
     (lhierarchy, lremip) <- slashPair
     lmimeType  <- space *> endValue
-    endOfLine <|> endOfInput
     return $ SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
                     laction (toInt lresult) (toInt lsize) lmethod 
                     luri lident lhierarchy lremip lmimeType
