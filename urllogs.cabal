@@ -30,7 +30,8 @@ Executable urllogs
   Main-is: urllogs.hs
   hs-source-dirs: src
   default-language:    Haskell2010
-  Build-depends: base, bytestring, safe, unordered-containers, urllogs
+  Build-depends: base, bytestring, safe, unordered-containers, urllogs,
+                 conduit
   ghc-options: -Wall
   if flag(optimize)
     ghc-options: -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts

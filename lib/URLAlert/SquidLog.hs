@@ -64,6 +64,9 @@ data SquidLogLine = SquidLogLine {
 instance Ord SquidLogLine where
     l1 `compare` l2 = ts l1 `compare` ts l2
 
+instance LogFileParser SquidLogLine where
+  parseLine = squidLogLine
+
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
 {-# INLINE plainValue #-}
@@ -153,6 +156,3 @@ squidLogLine = do
     return $ SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
                     laction (toInt lresult) (toInt lsize) lmethod 
                     luri lident lhierarchy lremip lmimeType
-
-instance LogFileParser SquidLogLine where
-  parseLine = squidLogLine
