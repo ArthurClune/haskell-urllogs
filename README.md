@@ -9,7 +9,7 @@ $ ./dist/build/urllogs/urllogs access.log.gz +RTS -A100m
  
 For testing:  
 
-cabal configure --enable-library-profiling --ghc-option=-auto-all --enable-executable-profiling    
+cabal configure --enable-library-profiling --ghc-option=-auto-all --enable-executable-profiling --enable-tests
 cabal build
 
 For production:
