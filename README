@@ -10,6 +10,6 @@ cabal build
 
 To run:
 
-time ./dist/build/urllogs/urllogs +RTS -k100M -A100M -RTS access.log.gz
+time ./dist/build/urllogs/urllogs +RTS -A100M -RTS access.log.gz
 
 
