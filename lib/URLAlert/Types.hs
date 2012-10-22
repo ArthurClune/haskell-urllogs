@@ -52,7 +52,6 @@ class LogFileParser b where
   parseGZipLog::FilePath -> IO [Maybe b]
   parseGZipLog f = do
       s <- fmap GZip.decompress (SL.readFile f)
-
       return (parseLines s)
 
   -- | Read a plain log file

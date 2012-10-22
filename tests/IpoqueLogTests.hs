@@ -2,7 +2,9 @@
 
 import Data.Maybe
 import Data.ByteString.Lazy.Char8 (append)
+import System.Exit
 import Test.HUnit
+
 import URLAlert.Types
 import URLAlert.IpoqueLog 
 
@@ -18,7 +20,7 @@ testFn n v f s = TestCase $ assertEqual n v (getVal f s)
 
 testFail s = TestCase $ assertEqual "fail" Nothing (head $ parseLines s::Maybe IpoqueLogLine)
 
-testList = [testFn  "clientIP" "192.168.34.125"              clientIP           s
+testList = [testFn  "clientIP" "192.168.34.125"              clientIP          s
             , testFn "vhost"    "www.nap.edu"                (vhost . uri)     s
             , testFn "path"     "/images/footer_podicon.png" (uriPath  . uri)  s
             , testFn "params"   ""                           (uriParams . uri) s
@@ -32,4 +34,9 @@ testList = [testFn  "clientIP" "192.168.34.125"              clientIP           
             , testFail x
            ]
 
-main = runTestTT $ TestList testList
+main :: IO ()
+main =
+    do c <- runTestTT $ TestList testList
+       if (errors c /= 0 || failures c /= 0) 
+            then exitFailure
+            else exitSuccess

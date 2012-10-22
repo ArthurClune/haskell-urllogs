@@ -1,0 +1,3 @@
+Language: haskell
+notifications:
+  email: false

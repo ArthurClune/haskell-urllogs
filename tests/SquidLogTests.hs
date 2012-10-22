@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.Maybe
+import System.Exit
 import Test.HUnit
+
 import URLAlert.Types
 import URLAlert.SquidLog
 
@@ -88,4 +90,9 @@ testList = [testFn "elapsed s1"      43378                         elapsed      
             ,testFail s16
            ]
 
-main = runTestTT $ TestList testList
+main :: IO ()
+main =
+    do c <- runTestTT $ TestList testList
+       if (errors c /= 0 || failures c /= 0) 
+            then exitFailure
+            else exitSuccess
