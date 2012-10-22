@@ -39,7 +39,7 @@ testFail s = TestCase $ assertEqual "fail" Nothing (head $ parseLines s::Maybe S
 testList = [testFn "elapsed s1"      43378                         elapsed           s1
             ,testFn "timestamp s1"   1330757555                    ts                s1
             ,testFn "clientIP s1"    "192.168.71.165"              clientIP          s1
-            ,testFn "action s1"      "TCP_MISSa"                    action            s1
+            ,testFn "action s1"      "TCP_MISS"                    action            s1
             ,testFn "code s1"        200                           resultCode        s1
             ,testFn "size s1"        418                           size              s1
             ,testFn "method s1"      GET                           method            s1
