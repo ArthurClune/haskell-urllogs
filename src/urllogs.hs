@@ -14,7 +14,6 @@ import Text.Printf (printf)
 
 import qualified URLAlert.SquidLog as SquidLog
 import URLAlert.Types
---import qualified URLAlert.IpoqueLog as IpoqueLog
 
 -- quick and dirty command line args handling
 parseArgs::IO String
@@ -38,11 +37,11 @@ pretty i (bs, n) = printf "%d: %s, %d" i (show bs) n
 main::IO()
 main = do      
     file <- parseArgs
-    logLines <- SquidLog.parseGZipLog file::IO [Maybe SquidLog.SquidLogLine]
+    logLines <- SquidLog.parseGZipLog file
     y <- DCL.sourceList logLines $= DCL.catMaybes 
-                                 $= DCL.filter (\x -> SquidLog.mimeType x == "text/html")
+                                 $= DCL.filter (\x -> mimeType x == "text/html")
                                  $$ DCL.fold count M.empty
     mapM_ putStrLn . zipWith pretty [1..] $ topNList 100 (M.toList y)
   where 
-    count acc l = M.insertWith (+) (S.copy (vhost . SquidLog.uri $ l)) 1 acc
+    count acc l = M.insertWith (+) (S.copy (vhost . uri $ l)) 1 acc
 
