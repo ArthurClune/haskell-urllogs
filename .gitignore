@@ -1,6 +1,9 @@
+Setup
 .virthualenv
+cabal-dev
 dist
 *.sublime-*
 *.o
 *.hi
-Setup
+*.chi
+*.chs.h

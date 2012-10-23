@@ -1,9 +1,0 @@
-
-Write code to get backlists from the web
-
-Add date and time stuff
-
-Rewrite to use conduits
-http://hackage.haskell.org/package/zlib-conduit-0.2.0.1
-
-Write quickcheck tests 
