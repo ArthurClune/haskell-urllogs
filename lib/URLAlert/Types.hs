@@ -6,17 +6,12 @@ module URLAlert.Types (
   -- * Core Types
   URI(..),
   Scheme(..),
-  -- * Typeclasses
-  LogFileParser(..),
+  Method(..),
+  SquidLogLine(..),
+
 ) where
 
-
-import Codec.Compression.GZip as GZip
-import Data.Attoparsec.Char8
 import qualified Data.ByteString.Char8 as S
-import qualified Data.ByteString.Lazy.Char8 as SL
-
-import URLAlert.Utils (toStrict)
 
 -- | The scheme used to access the resource
 data Scheme = HTTP | HTTPS | NONE deriving (Show, Eq) 
@@ -35,28 +30,39 @@ data URI = URI {
     scheme    :: Scheme
 } deriving (Show, Eq)
 
--- | Typeclass for URL log parsers
---
--- Users must define a parser parseLine that parses a single line from the logfile
-class LogFileParser b where
-  -- | Parse a Bytestring contraining a single line
-  parseLine::Parser b
+-- | Store the type of HTTP request made
+data Method = GET | HEAD| POST | PUT | OPTIONS |
+              CONNECT | ICP_QUERY | MNONE | PROPFIND     
+              deriving (Show, Eq)
 
-  -- | Parse a string containing a newline seperated set of lines
-  parseLines::SL.ByteString -> [Maybe b]
-  parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
-      where
-        myParse s = feed (parse parseLine s) S.empty
+-- | Store data about an access to a web resource from a squid log file
+data SquidLogLine = SquidLogLine {
+    -- | Time of request to nearest second
+    ts        :: {-# UNPACK #-} !Int,     
+    -- | Elapsed time to fulfil request      
+    elapsed   :: {-# UNPACK #-} !Int,
+    -- | IP of client requesting this resource
+    clientIP  :: {-# UNPACK #-} !S.ByteString,
+    -- | Action (e.g. cache miss)
+    action    :: {-# UNPACK #-} !S.ByteString,
+    -- | HTTP result code for this request
+    resultCode:: {-# UNPACK #-} !Int,
+    -- | Size of result (bytes)
+    size      :: {-# UNPACK #-} !Int,
+    -- | Method of request
+    method    :: Method,
+    -- | URI requested
+    uri       :: URI,
+    -- | The result of the RFC931/ident lookup of the client username. 
+    -- If RFC931/ident lookup is disabled (default: `ident_lookup off'), it is logged as - .
+    ident     :: {-# UNPACK #-} !S.ByteString,
+    -- | A description of how and where the requested object was fetched.
+    hierarchy :: {-# UNPACK #-} !S.ByteString,
+    -- This includes the IP of the remote server 
+    remIP :: {-# UNPACK #-} !S.ByteString,
+    -- | Mimetype of result
+    mimeType  :: {-# UNPACK #-} !S.ByteString
+} deriving (Show, Eq)
 
-  -- | Read a gzip'd log file
-  parseGZipLog::FilePath -> IO [Maybe b]
-  parseGZipLog f = do
-      s <- fmap GZip.decompress (SL.readFile f)
-      return (parseLines s)
-
-  -- | Read a plain log file
-  parseLog::FilePath -> IO [Maybe b]
-  parseLog f = do
-      s <- SL.readFile f
-      return (parseLines s)
-
+instance Ord SquidLogLine where
+    l1 `compare` l2 = ts l1 `compare` ts l2
