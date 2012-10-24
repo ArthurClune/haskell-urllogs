@@ -13,3 +13,4 @@ $ cabal configure --enable-library-profiling --ghc-option=-auto-all --enable-exe
 $ cabal build
 $ cabal test
 ```
+
