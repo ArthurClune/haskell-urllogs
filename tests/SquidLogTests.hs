@@ -44,7 +44,7 @@ testList = [testFn "elapsed s1"      43378                         elapsed      
             ,testFn "code s1"        200                           resultCode        s1
             ,testFn "size s1"        418                           size              s1
             ,testFn "method s1"      GET                           method            s1
-            ,testFn "ident s1"       "-"                           ident             s1
+            ,testFn "ident s1"       "-a"                           ident             s1
             ,testFn "hierarchy s1"   "DIRECT"                      hierarchy         s1
             ,testFn "remote ip s1"   "69.171.227.51"               remIP             s1
             ,testFn "mimetype s1"    "text/plain"                  mimeType          s1
