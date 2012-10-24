@@ -34,7 +34,7 @@ testFn n v f s = TestCase $ assertEqual n v (getVal f s)
     where
       getVal p s = p $ fromJust (head $ parseLines s)
 
-testFail s = TestCase $ assertEqual "fail" Nothing (head $ parseLines s::Maybe SquidLogLine)
+testFail s = TestCase $ assertEqual "fail" Nothing (head $ parseLines s)
 
 testList = [testFn "elapsed s1"      43378                         elapsed           s1
             ,testFn "timestamp s1"   1330757555                    ts                s1
