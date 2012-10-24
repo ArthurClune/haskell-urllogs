@@ -21,19 +21,10 @@ import Data.Attoparsec.Char8
 import qualified Data.ByteString.Char8 as S
 
 import URLAlert.Types
-import URLAlert.Utils (toInt)
 
-plainValue::Parser S.ByteString
-plainValue = takeWhile1 (/= ' ')
-{-# INLINE plainValue #-}
-
-slashPair::Parser (S.ByteString, S.ByteString)
-slashPair = (,) <$> (space *> takeWhile1 (/= '/') <*. "/") <*> takeWhile1 (/= ' ')
-{-# INLINE slashPair #-}
-
-endValue::Parser S.ByteString
-endValue = takeWhile (/= ' ')
-{-# INLINE endValue #-}
+ipv6host::Parser S.ByteString
+ipv6host = "[" .*> takeWhile1 (inClass "a-f0-9:%") <*. "]"
+{-# INLINE ipv6host #-}
 
 -- parse a vhost.
 -- sample vhost values
@@ -41,17 +32,16 @@ endValue = takeWhile (/= ' ')
 --[fe80::215:99ff:fe4a:3d45%2513]
 -- www.bbc.co.uk:80
 -- www.bbc.co.uk
-parseVHost::Parser (S.ByteString, S.ByteString)
+parseVHost::Parser (S.ByteString, Int)
 parseVHost = do
-  (lvhost, lport) <-    (,) <$> ipv6host <*>  (satisfy (== ':') *> takeWhile1 (/= '/'))
-                    <|> (,) <$> ipv6host <*>  pure "__not__"
-                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":") 
-                              <*> takeWhile1 (\x -> x /= '/' && x /= ' ')
+  (lvhost, lport) <-    (,) <$> ipv6host <*>  (":" .*> decimal)
+                    <|> (,) <$> ipv6host <*>  pure 0
+                    <|> (,) <$> (takeWhile1 (/= ':') <*. ":") 
+                              <*> decimal
                     <|> (,) <$> takeWhile1 (\x -> x /= '/' && x /= ' ') 
-                              <*> pure "__not__"
+                              <*> pure 0
   return (lvhost, lport)
 {-# INLINE parseVHost #-}
-
 
 -- parse a url.
 urlValue1::Parser URI
@@ -61,22 +51,19 @@ urlValue1 = do
         (lpath, lparams) <- (,) <$> takeTill (== '?') <* char '?' <*> takeTill (== ' ')
                              <|> (,) <$> takeTill (== ' ') <*> pure ""
         case lport of
-            "__not__" -> case lscheme of
+            0 -> case lscheme of
                 HTTP  -> return $ URI lvhost lpath lparams 80 lscheme
                 HTTPS -> return $ URI lvhost lpath lparams 443 lscheme
                 _     -> error "Parse failed in urlValue1"
-            _ -> return $ URI lvhost lpath lparams (toInt lport) lscheme
+            _ -> return $ URI lvhost lpath lparams lport lscheme
 {-# INLINE urlValue1 #-}
-
-ipv6host::Parser S.ByteString
-ipv6host = satisfy (== '[') *> takeWhile1 (/= ']') <* satisfy (== ']')
-{-# INLINE ipv6host #-}
 
 -- CONNECT type lines
 urlValue2::Parser URI
 urlValue2 = do
-    (lvhost, lport) <- (,) <$> takeTill (== ':') <* char ':' <*> takeWhile1 isDigit
-    return $ URI lvhost "/" "" (toInt lport) HTTPS
+    lvhost <- takeTill (== ':') <* char ':' 
+    lport  <- decimal
+    return $ URI lvhost "/" "" lport HTTPS
 {-# INLINE urlValue2 #-}
 
 -- NONE type lines
@@ -90,11 +77,12 @@ urlValue3 = do
 -- takes a bytestring, parses one line and returns the rest
 squidLogLine::Parser SquidLogLine
 squidLogLine = do
-    lts        <- plainValue
-    lelapsed   <- skipSpace *> plainValue
-    lclientIP  <- space *> plainValue
-    (laction, lresult) <- slashPair
-    lsize      <- space *> plainValue
+    lts        <- decimal <* takeWhile1 (/= ' ')
+    lelapsed   <- skipSpace *> decimal
+    lclientIP  <- space *> takeWhile1 (/= ' ')
+    laction    <- space *> takeWhile1 (/= '/') <*. "/"
+    lresult    <- decimal
+    lsize      <- space *> decimal
     lmethod    <- space *> (
                              string "GET"       *> pure GET  <|>
                              string "POST"      *> pure POST <|>
@@ -107,11 +95,12 @@ squidLogLine = do
                              string "PROPFIND"  *> pure PROPFIND 
                             )
     luri       <- space *> urlValue1 <|> space *> urlValue2 <|> space *> urlValue3
-    lident     <- space *> plainValue
-    (lhierarchy, lremip) <- slashPair
-    lmimeType  <- space *> endValue
-    return $ SquidLogLine (toInt lts) (toInt lelapsed) lclientIP 
-                    laction (toInt lresult) (toInt lsize) lmethod 
+    lident     <- space *> takeWhile1 (/= ' ')
+    lhierarchy <- space *> takeWhile1 (/= '/') <*. "/"
+    lremip     <- takeWhile1 (/= ' ')
+    lmimeType  <- space *> takeWhile (/= ' ')
+    return $ SquidLogLine lts lelapsed lclientIP 
+                    laction lresult lsize lmethod 
                     luri lident lhierarchy lremip lmimeType
 
 -- | Parse a single line from a bytestring

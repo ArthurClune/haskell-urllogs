@@ -20,7 +20,6 @@ Library
     Exposed-Modules:  URLAlert.SquidLog, URLAlert.Types
     hs-source-dirs:   lib
     default-language: Haskell98
-    Other-modules:    URLAlert.Utils
     Build-depends:    base, bytestring, attoparsec, zlib
     ghc-options:      -Wall
     if flag(optimize)
