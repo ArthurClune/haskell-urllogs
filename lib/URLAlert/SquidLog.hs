@@ -8,24 +8,20 @@ module URLAlert.SquidLog
       -- details of the log format
 
       -- * Functions for parsing lines
-      squidLogLine,
-      parseLines,
-      parseLog,
-      parseGZipLog,
+      runParse,
+      squidLogLine
     ) where
 
 --import Debug.Trace (trace)
 
 import Prelude hiding (takeWhile, take)
 
-import Codec.Compression.GZip as GZip
 import Control.Applicative
 import Data.Attoparsec.Char8
 import qualified Data.ByteString.Char8 as S
-import qualified Data.ByteString.Lazy.Char8 as SL
 
 import URLAlert.Types
-import URLAlert.Utils (toInt, toStrict)
+import URLAlert.Utils (toInt)
 
 plainValue::Parser S.ByteString
 plainValue = takeWhile1 (/= ' ')
@@ -118,22 +114,6 @@ squidLogLine = do
                     laction (toInt lresult) (toInt lsize) lmethod 
                     luri lident lhierarchy lremip lmimeType
 
-parseLine::Parser SquidLogLine
-parseLine = squidLogLine
-
-parseLines :: SL.ByteString -> [Maybe SquidLogLine]
-parseLines c = map (maybeResult . myParse . toStrict) (SL.lines c)
-    where
-      myParse s = feed (parse parseLine s) S.empty
-
--- | Read a gzip'd log file
-parseGZipLog :: FilePath -> IO [Maybe SquidLogLine]
-parseGZipLog f = do
-    s <- fmap GZip.decompress (SL.readFile f)
-    return (parseLines s)
-
--- | Read a plain log file
-parseLog::FilePath -> IO [Maybe SquidLogLine]
-parseLog f = do
-    s <- SL.readFile f
-    return (parseLines s)
+-- | Parse a single line from a bytestring
+runParse :: S.ByteString -> Maybe SquidLogLine
+runParse s = maybeResult $ feed (parse squidLogLine s) S.empty
