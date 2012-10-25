@@ -23,7 +23,7 @@ import qualified Data.ByteString.Char8 as S
 import URLAlert.Types
 
 ipv6host::Parser S.ByteString
-ipv6host = "[" .*> takeWhile1 (inClass "a-f0-9:%") <*. "]"
+ipv6host = satisfy (== '[') *> takeWhile1 (/= ']') <* satisfy (== ']')
 {-# INLINE ipv6host #-}
 
 -- parse a vhost.
@@ -34,9 +34,9 @@ ipv6host = "[" .*> takeWhile1 (inClass "a-f0-9:%") <*. "]"
 -- www.bbc.co.uk
 parseVHost::Parser (S.ByteString, Int)
 parseVHost = do
-  (lvhost, lport) <-    (,) <$> ipv6host <*>  (":" .*> decimal)
+  (lvhost, lport) <-    (,) <$> ipv6host <*>  (satisfy (== ':') *> decimal)
                     <|> (,) <$> ipv6host <*>  pure 0
-                    <|> (,) <$> (takeWhile1 (/= ':') <*. ":") 
+                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":") 
                               <*> decimal
                     <|> (,) <$> takeWhile1 (\x -> x /= '/' && x /= ' ') 
                               <*> pure 0
