@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Data.Attoparsec (maybeResult)
 import Data.ByteString as S
 import Data.Maybe
 import System.Exit
@@ -33,9 +34,9 @@ paramsS9 = "src=Windows7&wealocations=wc:UKXX0085&weadegreetype=F&culture=en-US"
 paramsS17 = "l=20703&sz=300x250&t=h&nwk=3&msd=2:2:ATQgwrt5HrDndtGFaiEfKpQNCVGf7H5noMOPbYlqU4Jsk0mefpMYmRG0hgCaZ8QO2V2056H3vWPVX3Ea77vDzg&rnd=227233138"
 testFn n v f s = TestCase $ assertEqual n v (getVal f s)
     where
-      getVal p s = p $ fromJust (runParse s)
+      getVal p s = p $ fromJust (maybeResult $ runParse s)
 
-testFail s = TestCase $ assertEqual "fail" Nothing (runParse s)
+testFail s = TestCase $ assertEqual "fail" Nothing (maybeResult $ runParse s)
 
 testList = [testFn "elapsed s1"      43378                         elapsed           s1
             ,testFn "timestamp s1"   1330757555                    ts                s1

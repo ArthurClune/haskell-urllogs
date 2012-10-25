@@ -1,6 +1,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
+import Data.Attoparsec (maybeResult)
 import qualified Data.ByteString.Char8 as S
 import qualified Data.Conduit.List as DCL
 import Data.Conduit
@@ -40,7 +41,7 @@ main = do
     h <-  runResourceT $ DCB.sourceFile file 
                          $= ungzip 
                          $= DCB.lines
-                         $= DCL.map runParse
+                         $= DCL.map (maybeResult . runParse)
                          $= DCL.catMaybes 
                          $= DCL.filter (\x -> mimeType x == "text/html")
                          $$ DCL.fold count M.empty

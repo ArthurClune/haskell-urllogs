@@ -104,5 +104,5 @@ squidLogLine = do
                     luri lident lhierarchy lremip lmimeType
 
 -- | Parse a single line from a bytestring
-runParse :: S.ByteString -> Maybe SquidLogLine
-runParse s = maybeResult $ feed (parse squidLogLine s) S.empty
+runParse :: S.ByteString -> Result SquidLogLine
+runParse s = feed (parse squidLogLine s) S.empty
