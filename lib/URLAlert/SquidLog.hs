@@ -9,7 +9,8 @@ module URLAlert.SquidLog
 
       -- * Functions for parsing lines
       runParse,
-      squidLogLine
+      squidLogLine,
+      urlValue
     ) where
 
 --import Debug.Trace (trace)
@@ -44,34 +45,34 @@ parseVHost = do
 {-# INLINE parseVHost #-}
 
 -- parse a url.
-urlValue1::Parser URI
-urlValue1 = do 
-        lscheme         <- "http://" .*> pure HTTP <|> "https://" .*> pure HTTPS
-        (lvhost, lport) <- parseVHost
-        (lpath, lparams) <- (,) <$> takeTill (== '?') <* char '?' <*> takeTill (== ' ')
-                             <|> (,) <$> takeTill (== ' ') <*> pure ""
+urlValue::Parser URL
+urlValue = do 
+        lscheme          <- "http://" .*> pure HTTP <|> "https://" .*> pure HTTPS
+        (lvhost, lport)  <- parseVHost
+        (lpath, lparams) <-     (,) <$> takeTill (== '?') <* char '?' <*> takeTill (== ' ')
+                            <|> (,) <$> takeTill (== ' ') <*> pure ""
         case lport of
             0 -> case lscheme of
-                HTTP  -> return $ URI lvhost lpath lparams 80 lscheme
-                HTTPS -> return $ URI lvhost lpath lparams 443 lscheme
+                HTTP  -> return $ URL lvhost lpath lparams 80 lscheme
+                HTTPS -> return $ URL lvhost lpath lparams 443 lscheme
                 _     -> error "Parse failed in urlValue1"
-            _ -> return $ URI lvhost lpath lparams lport lscheme
-{-# INLINE urlValue1 #-}
+            _ -> return $ URL lvhost lpath lparams lport lscheme
+{-# INLINE urlValue #-}
 
 -- CONNECT type lines
-urlValue2::Parser URI
+urlValue2::Parser URL
 urlValue2 = do
     lvhost <- takeTill (== ':') <* char ':' 
     lport  <- decimal
-    return $ URI lvhost "/" "" lport HTTPS
+    return $ URL lvhost "/" "" lport HTTPS
 {-# INLINE urlValue2 #-}
 
 -- NONE type lines
 -- 20 Jun 2012 06:56:37 192.168.76.250 400 NONE error:request-too-large text/html
-urlValue3::Parser URI
+urlValue3::Parser URL
 urlValue3 = do
   text <- takeTill (== ' ')
-  return $ URI text "" "" 0 NONE
+  return $ URL text "" "" 0 NONE
 
 -- | Parser for a single line from a squid logfile
 -- takes a bytestring, parses one line and returns the rest
@@ -94,12 +95,12 @@ squidLogLine = do
                              string "OPTIONS"   *> pure OPTIONS <|>
                              string "PROPFIND"  *> pure PROPFIND 
                             )
-    luri       <- space *> urlValue1 <|> space *> urlValue2 <|> space *> urlValue3
+    luri       <- space *> urlValue <|> space *> urlValue2 <|> space *> urlValue3
     lident     <- space *> takeWhile1 (/= ' ')
     lhierarchy <- space *> takeWhile1 (/= '/') <*. "/"
     lremip     <- takeWhile1 (/= ' ')
     lmimeType  <- space *> takeWhile (/= ' ')
-    return $ SquidLogLine lts lelapsed lclientIP 
+    return $! SquidLogLine lts lelapsed lclientIP 
                     laction lresult lsize lmethod 
                     luri lident lhierarchy lremip lmimeType
 

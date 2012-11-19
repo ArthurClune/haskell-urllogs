@@ -20,10 +20,10 @@ Library
     Exposed-Modules:  URLAlert.SquidLog, URLAlert.Types
     hs-source-dirs:   lib
     default-language: Haskell98
-    Build-depends:    base, bytestring, attoparsec, zlib
+    Build-depends:    attoparsec, base, bytestring, zlib
     ghc-options:      -Wall
     if flag(optimize)
-        ghc-options:  -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr 
+        ghc-options:  -O2 -funbox-strict-fields -fdicts-cheap -fspec-constr 
 
 Executable urllogs
   Main-is:          urllogs.hs
@@ -32,7 +32,7 @@ Executable urllogs
   Build-depends:    attoparsec, base, bytestring, conduit, safe, unordered-containers, urllogs, zlib-conduit
   ghc-options:      -Wall
   if flag(optimize)
-    ghc-options:    -O2 -funfolding-use-threshold=16 -optc-O3 -optc-ffast-math -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
+    ghc-options:    -O2 -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts
 
 Test-suite squid-tests
   Type:              exitcode-stdio-1.0

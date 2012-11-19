@@ -4,7 +4,7 @@ module URLAlert.Types (
   -- | This module provides types for handling URL log records
 
   -- * Core Types
-  URI(..),
+  URL(..),
   Scheme(..),
   Method(..),
   SquidLogLine(..),
@@ -16,8 +16,8 @@ import qualified Data.ByteString.Char8 as S
 -- | The scheme used to access the resource
 data Scheme = HTTP | HTTPS | NONE deriving (Show, Eq) 
 
--- | Stores a URI 
-data URI = URI {
+-- | Stores a URL
+data URL = URL {
     -- | The vhost requested (e.g. www.bbc.co.uk)
     vhost     :: {-# UNPACK #-} !S.ByteString,
     -- | The path part of the request (e.g. /iplayer)
@@ -52,7 +52,7 @@ data SquidLogLine = SquidLogLine {
     -- | Method of request
     method    :: Method,
     -- | URI requested
-    uri       :: URI,
+    uri       :: URL,
     -- | The result of the RFC931/ident lookup of the client username. 
     -- If RFC931/ident lookup is disabled (default: `ident_lookup off'), it is logged as - .
     ident     :: {-# UNPACK #-} !S.ByteString,
