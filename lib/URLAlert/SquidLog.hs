@@ -44,7 +44,7 @@ parseVHost = do
   return (lvhost, lport)
 {-# INLINE parseVHost #-}
 
--- parse a url.
+-- | parse a url.
 urlValue::Parser URL
 urlValue = do 
         lscheme          <- "http://" .*> pure HTTP <|> "https://" .*> pure HTTPS
