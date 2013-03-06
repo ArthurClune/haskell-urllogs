@@ -1,5 +1,5 @@
 Name:                urllogs
-Version:             0.0.1
+Version:             0.0.2
 Synopsis:            Parse squid logfiles
 Description:         Simple code written using attoparsec and conduits to parse logfiles
 License:             GPL-3
@@ -9,27 +9,31 @@ Maintainer:          arthur@clune.org
 Copyright:           Arthur Clune 2012
 Category:            Testing
 Build-type:          Simple
--- Extra-source-files:  
 Cabal-version:       >=1.14
+
+source-repository head
+  type:  git
+  location: https://github.com/ArthurClune/haskell-urllogs.git
 
 flag optimize
   description: Enable optimizations
   default:     True
 
 Library
-    Exposed-Modules:  URLAlert.SquidLog, URLAlert.Types
+    Exposed-Modules:  URLLogs.SquidLog, URLLogs.Types
     hs-source-dirs:   lib
-    default-language: Haskell98
+    default-language: Haskell2010
     Build-depends:    attoparsec, base, bytestring, zlib
     ghc-options:      -Wall
     if flag(optimize)
-        ghc-options:  -O2 -funbox-strict-fields -fdicts-cheap -fspec-constr 
+        ghc-options:  -O2 -funbox-strict-fields -fdicts-cheap -fspec-constr
 
 Executable urllogs
   Main-is:          urllogs.hs
   hs-source-dirs:   src
   default-language: Haskell2010
-  Build-depends:    attoparsec, base, bytestring, conduit, safe, unordered-containers, urllogs, zlib-conduit
+  Build-depends:    attoparsec, base, bytestring, conduit, safe, unordered-containers,
+                    urllogs, zlib-conduit
   ghc-options:      -Wall
   if flag(optimize)
     ghc-options:    -O2 -funbox-strict-fields -fdicts-cheap -fspec-constr -rtsopts

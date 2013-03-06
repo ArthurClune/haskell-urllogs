@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module URLAlert.SquidLog
+module URLLogs.SquidLog
     (
       -- | This module parses Squid access.log files
       --
@@ -17,11 +17,11 @@ module URLAlert.SquidLog
 
 import Prelude hiding (takeWhile, take)
 
-import Control.Applicative
-import Data.Attoparsec.Char8
+import           Control.Applicative
+import           Data.Attoparsec.Char8
 import qualified Data.ByteString.Char8 as S
 
-import URLAlert.Types
+import URLLogs.Types
 
 ipv6host::Parser S.ByteString
 ipv6host = satisfy (== '[') *> takeWhile1 (/= ']') <* satisfy (== ']')
@@ -37,16 +37,16 @@ parseVHost::Parser (S.ByteString, Int)
 parseVHost = do
   (lvhost, lport) <-    (,) <$> ipv6host <*>  (satisfy (== ':') *> decimal)
                     <|> (,) <$> ipv6host <*>  pure 0
-                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":") 
+                    <|> (,) <$> (takeWhile1 (\x -> x /= ':' && x /= '/') <*. ":")
                               <*> decimal
-                    <|> (,) <$> takeWhile1 (\x -> x /= '/' && x /= ' ') 
+                    <|> (,) <$> takeWhile1 (\x -> x /= '/' && x /= ' ')
                               <*> pure 0
   return (lvhost, lport)
 {-# INLINE parseVHost #-}
 
 -- | parse a url.
 urlValue::Parser URL
-urlValue = do 
+urlValue = do
         lscheme          <- "http://" .*> pure HTTP <|> "https://" .*> pure HTTPS
         (lvhost, lport)  <- parseVHost
         (lpath, lparams) <-     (,) <$> takeTill (== '?') <* char '?' <*> takeTill (== ' ')
@@ -62,7 +62,7 @@ urlValue = do
 -- CONNECT type lines
 urlValue2::Parser URL
 urlValue2 = do
-    lvhost <- takeTill (== ':') <* char ':' 
+    lvhost <- takeTill (== ':') <* char ':'
     lport  <- decimal
     return $ URL lvhost "/" "" lport HTTPS
 {-# INLINE urlValue2 #-}
@@ -78,31 +78,31 @@ urlValue3 = do
 -- takes a bytestring, parses one line and returns the rest
 squidLogLine::Parser SquidLogLine
 squidLogLine = do
-    lts        <- decimal <* takeWhile1 (/= ' ')
-    lelapsed   <- skipSpace *> decimal
-    lclientIP  <- space *> takeWhile1 (/= ' ')
-    laction    <- space *> takeWhile1 (/= '/') <*. "/"
-    lresult    <- decimal
-    lsize      <- space *> decimal
-    lmethod    <- space *> (
-                             string "GET"       *> pure GET  <|>
-                             string "POST"      *> pure POST <|>
-                             string "PUT"       *> pure PUT  <|>
-                             string "HEAD"      *> pure HEAD <|>
-                             string "CONNECT"   *> pure CONNECT   <|>
-                             string "ICP_QUERY" *> pure ICP_QUERY <|>
-                             string "NONE"      *> pure MNONE <|>
-                             string "OPTIONS"   *> pure OPTIONS <|>
-                             string "PROPFIND"  *> pure PROPFIND 
-                            )
-    luri       <- space *> urlValue <|> space *> urlValue2 <|> space *> urlValue3
-    lident     <- space *> takeWhile1 (/= ' ')
-    lhierarchy <- space *> takeWhile1 (/= '/') <*. "/"
-    lremip     <- takeWhile1 (/= ' ')
-    lmimeType  <- space *> takeWhile (/= ' ')
-    return $! SquidLogLine lts lelapsed lclientIP 
-                    laction lresult lsize lmethod 
-                    luri lident lhierarchy lremip lmimeType
+      lts        <- decimal <* takeWhile1 (/= ' ')
+      lelapsed   <- skipSpace *> decimal
+      lclientIP  <- space *> takeWhile1 (/= ' ')
+      laction    <- space *> takeWhile1 (/= '/') <*. "/"
+      lresult    <- decimal
+      lsize      <- space *> decimal
+      lmethod    <- space *> (
+                               string "GET"       *> pure GET  <|>
+                               string "POST"      *> pure POST <|>
+                               string "PUT"       *> pure PUT  <|>
+                               string "HEAD"      *> pure HEAD <|>
+                               string "CONNECT"   *> pure CONNECT   <|>
+                               string "ICP_QUERY" *> pure ICP_QUERY <|>
+                               string "NONE"      *> pure MNONE <|>
+                               string "OPTIONS"   *> pure OPTIONS <|>
+                               string "PROPFIND"  *> pure PROPFIND
+                              )
+      luri       <- space *> urlValue <|> space *> urlValue2 <|> space *> urlValue3
+      lident     <- space *> takeWhile1 (/= ' ')
+      lhierarchy <- space *> takeWhile1 (/= '/') <*. "/"
+      lremip     <- takeWhile1 (/= ' ')
+      lmimeType  <- space *> takeWhile (/= ' ')
+      return $! SquidLogLine lts lelapsed lclientIP
+                          laction lresult lsize lmethod
+                          luri lident lhierarchy lremip lmimeType
 
 -- | Parse a single line from a bytestring
 runParse :: S.ByteString -> Result SquidLogLine
