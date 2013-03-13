@@ -89,9 +89,9 @@ testList = [testFn "elapsed s1"      43378                         elapsed      
             ,testFn "method s13"     PROPFIND                      method            s13
             ,testFn "mimetype s14"   "{$content_type}"             mimeType          s14
             ,testFn "vhost s15"      "check.sanasecurity.com"      (vhost . uri)     s15
-            ,testFn "vhost s16"      "afe2.specificclick.net"      (vhost . uri)     s17
-            ,testFn "path s16"       "/adserve/"                   (uriPath .uri)    s17
-            ,testFn "params s16"     paramsS17                     (uriParams . uri) s17
+            ,testFn "vhost s17"      "afe2.specificclick.net"      (vhost . uri)     s17
+            ,testFn "path s17"       "/adserve/"                   (uriPath .uri)    s17
+            ,testFn "params s17"     paramsS17                     (uriParams . uri) s17
             ,testFail s16
            ]
 
